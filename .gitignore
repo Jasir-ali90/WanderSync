@@ -1,0 +1,46 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# --- Node ---
+node_modules/
+frontend/dist/
+*.tsbuildinfo
+
+# --- Environment / secrets ---
+.env
+.env.*
+!.env.example
+backend/.env
+
+# --- Django ---
+backend/staticfiles/
+backend/media/
+*.log
+
+# --- Testing / coverage ---
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+
+# --- IDEs / OS ---
+.idea/
+.vscode/
+*.swp
+Thumbs.db
+.DS_Store
+
+# --- Misc build artifacts ---
+celerybeat-schedule*
+
+# --- Local MongoDB data directory ---
+.mongo-data/
+
+# --- Local dev server logs & downloaded binaries ---
+logs*
+scripts/downloads/

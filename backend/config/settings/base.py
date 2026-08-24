@@ -60,11 +60,14 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    # Project apps
+    "apps.accounts",
     # Third-party
     "rest_framework",
     "corsheaders",
     "drf_spectacular",
 ]
+
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -122,7 +125,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # ------------------------------------------------------------------
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "apps.accounts.authentication.MongoJWTAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": (
         "rest_framework.permissions.IsAuthenticated",
@@ -171,7 +174,18 @@ SIMPLE_JWT = {
     "ALGORITHM": "HS256",
     "SIGNING_KEY": env("JWT_SECRET", SECRET_KEY),
     "AUTH_HEADER_TYPES": ("Bearer",),
+    # JWTs carry the MongoEngine user's public UUID — never the raw ObjectId.
+    "USER_ID_FIELD": "public_id",
+    "USER_ID_CLAIM": "user_id",
 }
+
+# ------------------------------------------------------------------
+# Testing
+# ------------------------------------------------------------------
+# MongoDB is not managed by Django's test DB machinery; this runner skips
+# relational database setup/teardown entirely.
+TEST_RUNNER = "config.test_runner.NoDatabaseRunner"
+
 
 # ------------------------------------------------------------------
 # CORS / CSRF

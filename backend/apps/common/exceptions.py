@@ -44,6 +44,24 @@ def wandersync_exception_handler(exc, context):
     """Envelope all errors with friendly messages; log unexpected ones."""
     response = drf_exception_handler(exc, context)
 
+    # Wrong credentials arrive as a serializer ValidationError; promote them to
+    # 401 so clients can distinguish auth failures from payload mistakes.
+    if isinstance(exc, drf_exceptions.ValidationError):
+        try:
+            codes = exc.get_codes()
+        except AttributeError:  # pragma: no cover - defensive
+            codes = None
+        flat = set()
+        if isinstance(codes, dict):
+            for value in codes.values():
+                flat.update(value if isinstance(value, (list, tuple)) else [value])
+        elif isinstance(codes, (list, tuple)):
+            flat.update(codes)
+        else:
+            flat.add(codes)
+        if "invalid_credentials" in flat:
+            return _error_response(401, "Incorrect email or password.")
+
     # Throttled requests get a friendly, actionable message.
     if isinstance(exc, drf_exceptions.Throttled):
         wait = getattr(exc, "wait", None)

@@ -8,9 +8,11 @@ from django.urls import include, path
 from apps.common.views import health_check
 
 api_v1 = [
+    path("auth/", include("apps.accounts.urls")),
     # Health / readiness probe.
     path("health/", health_check, name="health"),
 ]
+
 
 urlpatterns = [
     path("admin/", admin.site.urls),

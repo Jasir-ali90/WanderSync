@@ -1,0 +1,171 @@
+"""Account API endpoints."""
+import logging
+
+from drf_spectacular.utils import extend_schema
+from rest_framework import status
+from rest_framework.generics import RetrieveUpdateAPIView
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.throttling import ScopedRateThrottle
+from rest_framework.views import APIView
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+from rest_framework_simplejwt.settings import api_settings
+from rest_framework_simplejwt.tokens import RefreshToken
+
+from apps.accounts.serializers import (
+    ChangePasswordSerializer,
+    LoginSerializer,
+    ProfileUpdateSerializer,
+    RegisterSerializer,
+)
+from apps.accounts.services import (
+    issue_tokens,
+    touch_last_login,
+)
+from apps.common.responses import error_response, success_response
+
+logger = logging.getLogger(__name__)
+
+
+class AuthThrottle(ScopedRateThrottle):
+    """Shared 'auth' scope for credential endpoints (rate-limited in prod)."""
+
+    throttle_scope = "auth"
+
+
+
+class RegisterView(APIView):
+    """Create an account and immediately return a token pair."""
+
+    permission_classes = [AllowAny]
+    throttle_classes = [AuthThrottle]
+    serializer_class = RegisterSerializer
+
+
+    @extend_schema(request=RegisterSerializer, auth=[], tags=["auth"])
+    def post(self, request):
+        serializer = RegisterSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        tokens = issue_tokens(user)
+        return success_response(
+            {"user": user.to_safe_dict(), "tokens": tokens},
+            message="Account created successfully.",
+            status=status.HTTP_201_CREATED,
+        )
+
+
+class LoginView(APIView):
+    """Exchange email + password for a JWT pair."""
+
+    permission_classes = [AllowAny]
+    throttle_classes = [AuthThrottle]
+    serializer_class = LoginSerializer
+
+
+    @extend_schema(request=LoginSerializer, auth=[], tags=["auth"])
+    def post(self, request):
+        serializer = LoginSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data["user"]
+        touch_last_login(user)
+        tokens = issue_tokens(user)
+        return success_response(
+            {"user": user.to_safe_dict(), "tokens": tokens},
+            message="Signed in successfully.",
+        )
+
+
+class LogoutView(APIView):
+    """Stateless logout — clients discard their tokens.
+
+    Kept as an explicit endpoint so the frontend flow is uniform and so a
+    server-side token denylist can be introduced later without changing the
+    client contract.
+    """
+
+    permission_classes = [IsAuthenticated]
+    serializer_class = None
+
+    @extend_schema(tags=["auth"])
+    def post(self, request):
+        return success_response(message="Signed out successfully.")
+
+
+class MeView(RetrieveUpdateAPIView):
+    """Current user's account + travel profile."""
+
+    permission_classes = [IsAuthenticated]
+    serializer_class = ProfileUpdateSerializer
+
+    @extend_schema(responses={200: ProfileUpdateSerializer}, tags=["users"])
+    def get(self, request, *args, **kwargs):
+        return success_response(
+            {"user": request.user.to_safe_dict()},
+            message="Profile loaded.",
+        )
+
+    def patch(self, request, *args, **kwargs):
+        serializer = ProfileUpdateSerializer(
+            request.user, data=request.data, partial=True, context={"request": request}
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return success_response(
+            {"user": request.user.to_safe_dict()},
+            message="Profile updated.",
+        )
+
+
+class MongoTokenRefreshView(APIView):
+    """Exchange a valid refresh token for a fresh token pair.
+
+    Replaces SimpleJWT's stock refresh endpoint, whose rotation path re-queries
+    the user through Django's ORM. Verification and rotation happen purely on
+    the token; user resolution is delegated to the authentication class.
+    """
+
+    permission_classes = [AllowAny]
+    throttle_classes: list = []  # default anonymous throttle applies
+
+    @extend_schema(auth=[], tags=["auth"], request=None)
+    def post(self, request):
+        raw_token = request.data.get("refresh")
+        if not raw_token:
+            return error_response(
+                "A refresh token is required.", code="VALIDATION_ERROR"
+            )
+        try:
+            old = RefreshToken(raw_token)  # verifies signature + expiry
+        except TokenError as exc:
+            raise InvalidToken(str(exc))
+
+        user_id = old.payload.get(api_settings.USER_ID_CLAIM)
+        if user_id is None:
+            raise InvalidToken("Token contained no recognizable user identification.")
+
+        new_refresh = RefreshToken()
+        new_refresh[api_settings.USER_ID_CLAIM] = user_id
+
+        return success_response(
+            {"access": str(new_refresh.access_token), "refresh": str(new_refresh)}
+        )
+
+
+class ChangePasswordView(APIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ChangePasswordSerializer
+
+    @extend_schema(request=ChangePasswordSerializer, tags=["auth"])
+    def post(self, request):
+        serializer = ChangePasswordSerializer(
+            data=request.data, context={"request": request}
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        logger.info("Password changed for %s", request.user.email)
+        # Fresh tokens invalidate any outstanding pair for extra safety.
+        tokens = issue_tokens(request.user)
+        return success_response(
+            {"tokens": tokens},
+            message="Password changed successfully.",
+        )

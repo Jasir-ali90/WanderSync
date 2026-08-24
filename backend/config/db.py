@@ -6,9 +6,8 @@ when MongoDB is temporarily unreachable.
 """
 import logging
 
+from django.conf import settings
 from mongoengine import connect, get_connection
-
-from config.settings.base import MONGODB_CONNECT_TIMEOUT_MS, MONGODB_DB, MONGODB_URI
 
 logger = logging.getLogger(__name__)
 
@@ -25,10 +24,10 @@ def ensure_connection():
         return _ping(client)
     try:
         connect(
-            db=MONGODB_DB,
-            host=MONGODB_URI,
+            db=settings.MONGODB_DB,
+            host=settings.MONGODB_URI,
             alias=ALIAS,
-            serverSelectionTimeoutMS=MONGODB_CONNECT_TIMEOUT_MS,
+            serverSelectionTimeoutMS=settings.MONGODB_CONNECT_TIMEOUT_MS,
             uuidRepresentation="standard",
         )
 

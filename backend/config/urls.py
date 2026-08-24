@@ -11,9 +11,13 @@ api_v1 = [
     path("auth/", include("apps.accounts.urls")),
     path("trips/", include("apps.trips.urls")),
     path("planner/", include("apps.planner.urls")),
+    # Travel data (places/weather/hotels/events share one route table).
+    path("", include("apps.travel.urls")),
     # Health / readiness probe.
     path("health/", health_check, name="health"),
 ]
+
+
 
 
 

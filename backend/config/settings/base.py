@@ -64,6 +64,8 @@ INSTALLED_APPS = [
     "apps.accounts",
     "apps.trips",
     "apps.planner",
+    "apps.travel",
+
 
 
     # Third-party

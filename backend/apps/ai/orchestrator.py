@@ -207,12 +207,18 @@ def process_user_message(conversation, content: str, recent_messages: list[str])
         )
 
     engine_note = "" if engine == "openai" else " (demo data — no AI key configured)"
+    score_note = ""
+    if trip.optimization_score is not None:
+        score_note = f" Trip Optimization Score: {trip.optimization_score}/100."
+        if trip.insights:
+            score_note += f" {trip.insights[0]}"
     reply = (
         f"Your {trip.duration_days}-day trip to {trip.destination} is ready!"
-        f"{interest_note}{budget_note}\n\n"
+        f"{interest_note}{budget_note}{score_note}\n\n"
         f"I've saved it as \u201c{trip.title}\u201d — open it to see the day-by-day plan, "
         f"map and budget.{engine_note} Want me to adjust anything?"
     )
+
     return {
         "reply": reply,
         "meta": {

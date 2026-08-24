@@ -9,6 +9,7 @@ from django.utils import timezone
 from mongoengine import (
     DateField,
     DateTimeField,
+    DictField,
     Document,
     EmbeddedDocument,
     EmbeddedDocumentField,
@@ -17,6 +18,7 @@ from mongoengine import (
     ListField,
     StringField,
 )
+
 
 MAX_TRIP_DAYS = 365
 
@@ -107,8 +109,13 @@ class Trip(Document):
     visibility = StringField(default="private", choices=VISIBILITIES, max_length=16)
     notes = StringField(default="", max_length=5000)
     itinerary = EmbeddedDocumentField(Itinerary, default=Itinerary)
+    # Trip Optimization Score (Phase 7)
+    optimization_score = IntField(min_value=0, max_value=100, null=True)
+    score_breakdown = DictField(default=dict)
+    insights = ListField(StringField(max_length=300), default=list)
     created_at = DateTimeField()
     updated_at = DateTimeField()
+
 
     meta = {
         "collection": "trips",
@@ -153,7 +160,13 @@ class Trip(Document):
             "visibility": self.visibility,
             "notes": self.notes,
             "itinerary": self.itinerary.to_api_dict(),
+            "optimization": {
+                "score": self.optimization_score,
+                "breakdown": self.score_breakdown or {},
+                "insights": self.insights or [],
+            },
             "created_at": self.created_at.isoformat() if self.created_at else None,
+
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
 

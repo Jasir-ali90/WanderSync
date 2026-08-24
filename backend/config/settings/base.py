@@ -63,6 +63,8 @@ INSTALLED_APPS = [
     # Project apps
     "apps.accounts",
     "apps.trips",
+    "apps.planner",
+
 
     # Third-party
     "rest_framework",

@@ -10,9 +10,11 @@ from apps.common.views import health_check
 api_v1 = [
     path("auth/", include("apps.accounts.urls")),
     path("trips/", include("apps.trips.urls")),
+    path("planner/", include("apps.planner.urls")),
     # Health / readiness probe.
     path("health/", health_check, name="health"),
 ]
+
 
 
 

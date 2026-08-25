@@ -1,20 +1,16 @@
-feat: Phase 11-13 - itinerary studio, sharing and exports
+docs: architecture, requirements traceability, database design, CI
 
-- Regenerate-Day engine: six mood presets (relaxed/balanced/packed/
-  budget/premium/family) with AI path when configured + deterministic
-  demo fallback
-- Itinerary studio API: replace day activities, append/remove activity,
-  regenerate day - every mutation re-repairs schedule and re-scores trip;
-  manual trips auto-provision day slots (with dates) up to duration_days
-- Sharing: token links (create/revoke), anonymous public view with private
-  notes stripped; trips flip public/private with link lifecycle
-- Exports: branded ReportLab PDF (header band, summary table, per-day
-  activity grids, estimate disclaimer) and ICS calendar with proper
-  character escaping; both owner-scoped and export-rate-limited
-- Exception handler hardened for nested serializer error dicts
-- Frontend: TripDetailPage rebuilt into itinerary studio (day tabs, mood
-  regeneration, add/remove activities, share-link banner, PDF/ICS downloads
-  via authenticated blob fetch); public /shared/:token read-only page;
-  ActivityForm component
-- 19 new backend tests (studio CRUD/regeneration, sharing privacy,
-  exports); full suite at 112 passing; live smoke verified all flows
+- docs/architecture.md: Mermaid system architecture, AI-generation sequence
+  flow, logical ERD, deployment topology, security posture, file layout
+- docs/requirements-matrix.md: every core SRS requirement mapped to feature,
+  backend app, frontend, database, endpoint and tests (optional enhancements
+  documented)
+- docs/database.md: MongoDB collection-by-collection design with field tables
+  and index strategy
+- .github/workflows/ci.yml: backend (Mongo service, deps, system check, 112
+  tests, OpenAPI generation check) + frontend (install, lint, build)
+- Live Swagger UI wired at /api/v1/schema/ and /schema/swagger-ui/
+- README expanded: features, demo mode walkthrough, testing, deployment,
+  security, documentation index
+- Final verification: 112 backend tests green, frontend build clean, Swagger
+  schema served 200 via the Vite proxy

@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      mongo:
+        image: mongo:8
+        ports:
+          - 27017:27017
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        working-directory: backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Django system check
+        working-directory: backend
+        run: python manage.py check --settings=config.settings.test
+
+      - name: Backend test suite
+        working-directory: backend
+        env:
+          MONGODB_URI: mongodb://localhost:27017/wandersync
+          DJANGO_SETTINGS_MODULE: config.settings.test
+        run: python manage.py test --settings=config.settings.test
+
+      - name: OpenAPI schema generation check
+        working-directory: backend
+        run: python manage.py spectacular --file /tmp/schema.yml --settings=config.settings.test && test -s /tmp/schema.yml
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Lint
+        working-directory: frontend
+        run: npm run lint
+
+      - name: Type-check + production build
+        working-directory: frontend
+        run: npm run build

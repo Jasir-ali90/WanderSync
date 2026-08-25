@@ -1,0 +1,17 @@
+feat: Phase 9-10 - frontend foundation and landing page
+
+- Design system: ink/sand/teal tokens, Sora+Inter typography, radial hero
+  backdrop, reduced-motion support
+- Typed API client with envelope unwrapping, JWT injection and transparent
+  single-retry token refresh; AuthProvider context with session restore
+- UI primitives: Button (variants/loading), Input, Card/Spinner/SectionTitle
+- Router per spec section 76: public landing/features/how-it-works, auth
+  pages (RHF+Zod), protected dashboard/planner/trips/trip-detail/profile,
+  404; route-level code splitting via React.lazy
+- Layouts: public navbar/footer, protected app shell with mobile bottom nav
+- Landing page: animated hero with live-style planner mockup, features grid,
+  three-step flow, trust band
+- Functional v1 pages wired to real API: dashboard, trips list, trip detail
+  (timeline + optimization score), planner chat (optimistic send), profile
+- Verified end-to-end through Vite proxy: register -> me -> conversation ->
+  itinerary generation -> trips listing -> live Open-Meteo weather

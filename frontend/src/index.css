@@ -1,16 +1,26 @@
 @import "tailwindcss";
 
 /*
- * WanderSync design tokens — expanded in the design-system phase.
- * Palette direction: deep ink + warm sand + travel teal accents.
+ * WanderSync design system tokens.
+ * Palette: deep "ink" navy surfaces, warm "sand" accents, travel teal brand.
  */
 @theme {
-  --color-ink-950: #0c1220;
-  --color-ink-900: #111a2e;
+  --color-ink-950: #070b14;
+  --color-ink-900: #0c1220;
+  --color-ink-800: #111a2e;
+  --color-ink-700: #1a2540;
+  --color-ink-600: #26345a;
+  --color-brand-600: #0f766e;
   --color-brand-500: #0d9488;
   --color-brand-400: #14b8a6;
-  --font-display: "Sora", "Inter", system-ui, sans-serif;
-  --font-body: "Inter", system-ui, sans-serif;
+  --color-brand-300: #5eead4;
+  --color-sand-400: #e8c489;
+  --color-sand-300: #f2d9ac;
+
+  --font-display: "Sora", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  --shadow-card: 0 10px 30px -12px rgb(0 0 0 / 0.55);
 }
 
 html,
@@ -22,5 +32,27 @@ body,
 body {
   font-family: var(--font-body);
   background-color: var(--color-ink-950);
-  color: #f8fafc;
+  color: #f1f5f9;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background-color: rgb(20 184 166 / 0.35);
+}
+
+/* Subtle radial backdrop used by hero/CTA sections. */
+.bg-radial-teal {
+  background-image:
+    radial-gradient(60% 50% at 70% 20%, rgb(13 148 136 / 0.16), transparent 70%),
+    radial-gradient(40% 40% at 15% 80%, rgb(232 196 137 / 0.08), transparent 70%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

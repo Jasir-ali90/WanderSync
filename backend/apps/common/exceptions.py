@@ -54,11 +54,16 @@ def wandersync_exception_handler(exc, context):
         flat = set()
         if isinstance(codes, dict):
             for value in codes.values():
-                flat.update(value if isinstance(value, (list, tuple)) else [value])
+                if isinstance(value, (list, tuple)):
+                    flat.update(str(item) for item in value)
+                elif isinstance(value, dict):
+                    flat.update(str(item) for items in value.values() for item in (items if isinstance(items, (list, tuple)) else [items]))
+                else:
+                    flat.add(str(value))
         elif isinstance(codes, (list, tuple)):
-            flat.update(codes)
+            flat.update(str(item) for item in codes)
         else:
-            flat.add(codes)
+            flat.add(str(codes))
         if "invalid_credentials" in flat:
             return _error_response(401, "Incorrect email or password.")
 
@@ -84,12 +89,19 @@ def wandersync_exception_handler(exc, context):
     details = []
     if isinstance(detail, dict):
         for field, messages in detail.items():
-            if isinstance(messages, (list, tuple)):
-                details.extend(
-                    {"field": str(field), "message": str(m)} for m in messages
-                )
-            else:
-                details.append({"field": str(field), "message": str(messages)})
+            def _flatten(values, prefix=None):
+                out = []
+                if isinstance(values, dict):
+                    for key, value in values.items():
+                        out.extend(_flatten(value, prefix=key if prefix is None else f"{prefix}.{key}"))
+                elif isinstance(values, (list, tuple)):
+                    for value in values:
+                        out.extend(_flatten(value, prefix=prefix))
+                else:
+                    out.append({"field": prefix or str(field), "message": str(values)})
+                return out
+
+            details.extend(_flatten(messages))
         message = (
             "Please review the highlighted fields and try again."
             if response.status_code == 400

@@ -9,10 +9,16 @@ from apps.common.views import health_check
 
 api_v1 = [
     path("auth/", include("apps.accounts.urls")),
+    # Trips include the itinerary studio routes.
     path("trips/", include("apps.trips.urls")),
+    path("trips/", include("apps.trips.itinerary_urls")),
     path("planner/", include("apps.planner.urls")),
-    # Travel data (places/weather/hotels/events share one route table).
+    # --- Travel data (places/weather/hotels/events share one route table).
     path("", include("apps.travel.urls")),
+    # Sharing
+    path("share/", include("apps.sharing.urls")),
+    # Exports (PDF/ICS)
+    path("export/", include("apps.exports.urls")),
     # Health / readiness probe.
     path("health/", health_check, name="health"),
 ]

@@ -1,17 +1,20 @@
-feat: Phase 9-10 - frontend foundation and landing page
+feat: Phase 11-13 - itinerary studio, sharing and exports
 
-- Design system: ink/sand/teal tokens, Sora+Inter typography, radial hero
-  backdrop, reduced-motion support
-- Typed API client with envelope unwrapping, JWT injection and transparent
-  single-retry token refresh; AuthProvider context with session restore
-- UI primitives: Button (variants/loading), Input, Card/Spinner/SectionTitle
-- Router per spec section 76: public landing/features/how-it-works, auth
-  pages (RHF+Zod), protected dashboard/planner/trips/trip-detail/profile,
-  404; route-level code splitting via React.lazy
-- Layouts: public navbar/footer, protected app shell with mobile bottom nav
-- Landing page: animated hero with live-style planner mockup, features grid,
-  three-step flow, trust band
-- Functional v1 pages wired to real API: dashboard, trips list, trip detail
-  (timeline + optimization score), planner chat (optimistic send), profile
-- Verified end-to-end through Vite proxy: register -> me -> conversation ->
-  itinerary generation -> trips listing -> live Open-Meteo weather
+- Regenerate-Day engine: six mood presets (relaxed/balanced/packed/
+  budget/premium/family) with AI path when configured + deterministic
+  demo fallback
+- Itinerary studio API: replace day activities, append/remove activity,
+  regenerate day - every mutation re-repairs schedule and re-scores trip;
+  manual trips auto-provision day slots (with dates) up to duration_days
+- Sharing: token links (create/revoke), anonymous public view with private
+  notes stripped; trips flip public/private with link lifecycle
+- Exports: branded ReportLab PDF (header band, summary table, per-day
+  activity grids, estimate disclaimer) and ICS calendar with proper
+  character escaping; both owner-scoped and export-rate-limited
+- Exception handler hardened for nested serializer error dicts
+- Frontend: TripDetailPage rebuilt into itinerary studio (day tabs, mood
+  regeneration, add/remove activities, share-link banner, PDF/ICS downloads
+  via authenticated blob fetch); public /shared/:token read-only page;
+  ActivityForm component
+- 19 new backend tests (studio CRUD/regeneration, sharing privacy,
+  exports); full suite at 112 passing; live smoke verified all flows

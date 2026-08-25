@@ -151,4 +151,31 @@ export const api = {
     const envelope = await rawRequest<T>(path, { method: "DELETE" });
     return envelope.data;
   },
+  /**
+   * Authenticated binary download (PDF/ICS/CSV). Returns the raw Response so
+   * callers can stream it to disk; rejects with ApiError on errors.
+   */
+  async download(path: string, filename: string): Promise<void> {
+    const headers = new Headers();
+    const token = getAccessToken();
+    if (token) headers.set("Authorization", `Bearer ${token}`);
+    let response: Response;
+    try {
+      response = await fetch(`${BASE}${path}`, { headers });
+    } catch {
+      throw new ApiError(0, "Network error — could not start the download.", "NETWORK_ERROR");
+    }
+    if (!response.ok) {
+      throw new ApiError(response.status, "The download failed.", "DOWNLOAD_ERROR");
+    }
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = filename;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+  },
 };

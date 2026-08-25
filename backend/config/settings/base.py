@@ -65,6 +65,12 @@ INSTALLED_APPS = [
     "apps.trips",
     "apps.planner",
     "apps.travel",
+    "apps.itineraries",
+    "apps.sharing",
+    "apps.exports",
+    "apps.notifications",
+    "apps.analytics",
+    "apps.recommendations",
 
 
 

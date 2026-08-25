@@ -9,6 +9,7 @@ import { AuthProvider } from "@/lib/auth";
 import LandingPage from "@/pages/LandingPage";
 import LoginPage from "@/pages/auth/LoginPage";
 import RegisterPage from "@/pages/auth/RegisterPage";
+import SharedTripPage from "@/pages/SharedTripPage";
 
 /* Route-level code splitting keeps the initial bundle lean. */
 const DashboardPage = lazy(() => import("@/pages/DashboardPage"));
@@ -43,6 +44,8 @@ export default function App() {
               {/* Auth (standalone layouts) */}
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
+              {/* Public read-only shared itinerary */}
+              <Route path="/shared/:token" element={<SharedTripPage />} />
 
               {/* Protected application */}
               <Route

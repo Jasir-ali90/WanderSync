@@ -6,10 +6,12 @@ from apps.travel.views import (
     HotelSearchView,
     PlaceDetailView,
     PlaceSearchView,
+    SpotCatalogView,
     WeatherView,
 )
 
 urlpatterns = [
+    path("spots/", SpotCatalogView.as_view(), name="spot-catalog"),
     path("places/search/", PlaceSearchView.as_view(), name="place-search"),
     path("places/<str:place_id>/", PlaceDetailView.as_view(), name="place-detail"),
     path("weather/", WeatherView.as_view(), name="weather"),

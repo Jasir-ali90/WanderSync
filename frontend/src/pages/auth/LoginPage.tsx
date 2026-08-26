@@ -26,6 +26,7 @@ export default function LoginPage() {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({ resolver: zodResolver(schema) });
 
@@ -97,6 +98,43 @@ export default function LoginPage() {
             Create an account
           </Link>
         </p>
+
+        {/* Demo credentials (seeded via `manage.py seed_demo`) */}
+        <details className="group mt-4 rounded-lg border border-ink-600 bg-ink-900/60">
+          <summary className="cursor-pointer list-none px-3 py-2.5 text-xs font-medium text-slate-300 transition-colors hover:text-brand-300 [&::-webkit-details-marker]:hidden">
+            🎭 Demo credentials <span className="float-right text-slate-500 group-open:hidden">show</span>
+            <span className="float-right hidden text-slate-500 group-open:inline">hide</span>
+          </summary>
+          <div className="space-y-2 border-t border-ink-700 px-3 py-3">
+            {[
+              { label: "👤 User demo", email: "demo@wandersync.test", password: "Demo@12345" },
+              { label: "🛡️ Admin demo", email: "admin@wandersync.test", password: "Admin@12345" },
+            ].map((account) => (
+              <div key={account.email} className="flex items-center justify-between gap-2 rounded-lg bg-ink-800 px-3 py-2">
+                <div className="min-w-0 text-xs">
+                  <p className="font-medium text-slate-200">{account.label}</p>
+                  <p className="truncate text-slate-500">{account.email} · {account.password}</p>
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => {
+                    setValue("email", account.email);
+                    setValue("password", account.password);
+                    setFormError(null);
+                  }}
+                >
+                  Fill
+                </Button>
+              </div>
+            ))}
+            <p className="text-[10px] leading-relaxed text-slate-600">
+              Admin accounts unlock the Admin Console (/admin) for managing users,
+              trips and platform stats.
+            </p>
+          </div>
+        </details>
       </div>
     </div>
   );

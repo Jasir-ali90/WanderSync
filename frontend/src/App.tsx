@@ -12,7 +12,9 @@ import RegisterPage from "@/pages/auth/RegisterPage";
 import SharedTripPage from "@/pages/SharedTripPage";
 
 /* Route-level code splitting keeps the initial bundle lean. */
+const AdminPage = lazy(() => import("@/pages/AdminPage"));
 const DashboardPage = lazy(() => import("@/pages/DashboardPage"));
+const FamousSpotsPage = lazy(() => import("@/pages/FamousSpotsPage"));
 const FeaturesPage = lazy(() => import("@/pages/FeaturesPage"));
 const HowItWorksPage = lazy(() => import("@/pages/HowItWorksPage"));
 const NotFoundPage = lazy(() => import("@/pages/NotFoundPage"));
@@ -57,9 +59,11 @@ export default function App() {
               >
                 <Route path="/dashboard" element={<DashboardPage />} />
                 <Route path="/planner" element={<PlannerPage />} />
+                <Route path="/spots" element={<FamousSpotsPage />} />
                 <Route path="/trips" element={<TripsPage />} />
                 <Route path="/trips/:tripId" element={<TripDetailPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/admin" element={<AdminPage />} />
               </Route>
 
               <Route path="*" element={<NotFoundPage />} />

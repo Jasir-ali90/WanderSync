@@ -17,6 +17,7 @@ export interface AuthUser {
   email: string;
   full_name: string;
   is_active: boolean;
+  is_staff: boolean;
   profile: TravelProfile;
   created_at: string | null;
 }

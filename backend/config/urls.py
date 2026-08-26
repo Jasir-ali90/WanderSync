@@ -14,6 +14,8 @@ api_v1 = [
     path("trips/", include("apps.trips.urls")),
     path("trips/", include("apps.trips.itinerary_urls")),
     path("planner/", include("apps.planner.urls")),
+    # Admin panel (staff only)
+    path("admin/", include("apps.adminpanel.urls")),
     # --- Travel data (places/weather/hotels/events share one route table).
     path("", include("apps.travel.urls")),
     # Sharing

@@ -1,6 +1,14 @@
-import { Link, NavLink, Outlet } from "react-router-dom";
-
-import { Compass, LayoutDashboard, MapPinned, Sparkles, UserRound } from "lucide-react";
+import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  Compass,
+  Landmark,
+  LayoutDashboard,
+  MapPinned,
+  ShieldCheck,
+  Sparkles,
+  UserRound,
+} from "lucide-react";
 
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
@@ -86,11 +94,22 @@ export function Footer() {
 }
 
 export function PublicLayout() {
+  const location = useLocation();
   return (
     <div className="flex min-h-screen flex-col">
       <PublicNavbar />
       <main className="flex-1">
-        <Outlet />
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={location.pathname}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.25 }}
+          >
+            <Outlet />
+          </motion.div>
+        </AnimatePresence>
       </main>
       <Footer />
     </div>
@@ -101,18 +120,23 @@ const APP_NAV = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/planner", label: "Planner", icon: Sparkles },
   { to: "/trips", label: "Trips", icon: MapPinned },
+  { to: "/spots", label: "Spots", icon: Landmark },
   { to: "/profile", label: "Profile", icon: UserRound },
 ];
 
 export function ProtectedLayout() {
   const { user, logout } = useAuth();
+  const location = useLocation();
+  const navItems = user?.is_staff
+    ? [...APP_NAV, { to: "/admin", label: "Admin", icon: ShieldCheck }]
+    : APP_NAV;
   return (
     <div className="flex min-h-screen flex-col bg-ink-950">
       <header className="sticky top-0 z-40 border-b border-ink-700/60 bg-ink-950/85 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">
           <Wordmark />
           <nav aria-label="App" className="hidden gap-1 md:flex">
-            {APP_NAV.map((item) => (
+            {navItems.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
@@ -138,15 +162,29 @@ export function ProtectedLayout() {
       </header>
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-24 pt-6 sm:px-6 md:pb-10">
-        <Outlet />
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={location.pathname}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.22 }}
+          >
+            <Outlet />
+          </motion.div>
+        </AnimatePresence>
       </main>
 
       {/* Mobile bottom navigation */}
       <nav
         aria-label="Mobile"
-        className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-ink-700/70 bg-ink-900/95 backdrop-blur md:hidden"
+        className={
+          user?.is_staff
+            ? "fixed inset-x-0 bottom-0 z-40 grid grid-cols-6 border-t border-ink-700/70 bg-ink-900/95 backdrop-blur md:hidden"
+            : "fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-ink-700/70 bg-ink-900/95 backdrop-blur md:hidden"
+        }
       >
-        {APP_NAV.map((item) => (
+        {navItems.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}

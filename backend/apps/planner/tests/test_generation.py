@@ -51,8 +51,11 @@ class ItineraryGenerationTests(PlannerTestBase, SimpleTestCase):
 
     def test_demo_engine_used_without_openai_key(self):
         conversation_id = self.create_conversation()
-        # No key configured in tests -> extraction yields nothing -> demo path.
-        with self.mocked_ai({"extract": {}, "itinerary": None}):
+        # Force DEMO mode regardless of whether an .env key exists.
+        with (
+            mock.patch("apps.ai.orchestrator.openai_client.is_enabled", new=lambda: False),
+            self.mocked_ai({"extract": {}, "itinerary": None}),
+        ):
             response = self.send_message(
                 conversation_id,
                 "Plan a 3-day trip to Italy with a $1500 budget for 2 people.",

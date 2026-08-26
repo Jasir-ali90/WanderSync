@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import { SendHorizonal } from "lucide-react";
+import { MessageSquarePlus, SendHorizonal } from "lucide-react";
 
 import { ChatTranscript } from "@/components/planner/ChatTranscript";
 import { Button } from "@/components/ui/Button";
 import { Card, Spinner } from "@/components/ui/Card";
 import { api, ApiError } from "@/lib/api";
-import type { Conversation, PlannerMessage } from "@/types/planner";
+import type { PlannerMessage } from "@/types/planner";
 
 const SUGGESTIONS = [
   "Plan a 5-day trip to Dubai",
@@ -16,8 +16,11 @@ const SUGGESTIONS = [
   "A food-focused weekend in Bologna",
 ];
 
+const CONVERSATION_KEY = "wandersync.conversation.id";
+
 export default function PlannerPage() {
   const queryClient = useQueryClient();
+  const [searchParams] = useSearchParams();
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<PlannerMessage[]>([]);
   const [input, setInput] = useState("");
@@ -25,18 +28,40 @@ export default function PlannerPage() {
   const [error, setError] = useState<string | null>(null);
   const [bootstrapping, setBootstrapping] = useState(true);
   const listRef = useRef<HTMLOListElement>(null);
+  const prefillSent = useRef(false);
 
+  // Chat history persists: reuse the saved conversation across visits.
   useEffect(() => {
     let cancelled = false;
-    api
-      .post<{ conversation: Conversation; messages: PlannerMessage[] }>(
+    const savedId = localStorage.getItem(CONVERSATION_KEY);
+
+    async function bootstrap() {
+      if (savedId) {
+        try {
+          const data = await api.get<{ conversation: unknown; messages: PlannerMessage[] }>(
+            `/planner/conversations/${savedId}/`,
+          );
+          if (!cancelled) {
+            setConversationId(savedId);
+            setMessages(data.messages);
+            setBootstrapping(false);
+            return;
+          }
+        } catch {
+          // Saved conversation gone — fall through and create a fresh one.
+        }
+      }
+      const data = await api.post<{ conversation: { id: string }; messages: PlannerMessage[] }>(
         "/planner/conversations/",
-      )
-      .then((data) => {
-        if (cancelled) return;
+      );
+      if (!cancelled) {
         setConversationId(data.conversation.id);
         setMessages(data.messages);
-      })
+        localStorage.setItem(CONVERSATION_KEY, data.conversation.id);
+      }
+    }
+
+    bootstrap()
       .catch(() => !cancelled && setError("Couldn't start the planner. Is the backend running?"))
       .finally(() => !cancelled && setBootstrapping(false));
     return () => {
@@ -44,9 +69,21 @@ export default function PlannerPage() {
     };
   }, []);
 
-  useEffect(() => {
-    listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
-  }, [messages, sending]);
+  function startNewChat() {
+    void (async () => {
+      try {
+        const data = await api.post<{ conversation: { id: string }; messages: PlannerMessage[] }>(
+          "/planner/conversations/",
+        );
+        setConversationId(data.conversation.id);
+        setMessages(data.messages);
+        localStorage.setItem(CONVERSATION_KEY, data.conversation.id);
+        setError(null);
+      } catch {
+        setError("Couldn't start a new chat.");
+      }
+    })();
+  }
 
   async function send(content: string) {
     if (!conversationId || !content.trim() || sending) return;
@@ -58,7 +95,6 @@ export default function PlannerPage() {
       content,
       meta: {},
     };
-
     setMessages((prev) => [...prev, optimistic]);
     setInput("");
     try {
@@ -82,16 +118,40 @@ export default function PlannerPage() {
     }
   }
 
+  // Prefill from Famous Spots ("Ask the planner") via ?q=
+  useEffect(() => {
+    const question = searchParams.get("q");
+    if (
+      question &&
+      !prefillSent.current &&
+      conversationId &&
+      !bootstrapping
+    ) {
+      prefillSent.current = true;
+      void send(question);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conversationId, bootstrapping, searchParams]);
+
+  useEffect(() => {
+    listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
+  }, [messages, sending]);
+
   if (bootstrapping) return <Spinner label="Waking up your travel planner…" />;
 
   return (
     <div className="mx-auto flex h-[calc(100vh-9rem)] max-w-3xl flex-col md:h-[calc(100vh-7rem)]">
-      <header className="pb-3">
-        <h1 className="font-[family-name:var(--font-display)] text-xl font-bold text-slate-50">AI Trip Planner</h1>
-        <p className="text-xs text-slate-500">
-          Describe your dream trip — the itinerary lands in{" "}
-          <Link to="/trips" className="text-brand-400">your trips</Link>.
-        </p>
+      <header className="flex items-center justify-between pb-3">
+        <div>
+          <h1 className="font-[family-name:var(--font-display)] text-xl font-bold text-slate-50">AI Trip Planner</h1>
+          <p className="text-xs text-slate-500">
+            Describe your dream trip — itineraries land in{" "}
+            <Link to="/trips" className="text-brand-400">your trips</Link>. Chat history is saved automatically.
+          </p>
+        </div>
+        <Button size="sm" variant="secondary" onClick={startNewChat}>
+          <MessageSquarePlus aria-hidden className="size-3.5" /> New chat
+        </Button>
       </header>
 
       <Card className="flex min-h-0 flex-1 flex-col">

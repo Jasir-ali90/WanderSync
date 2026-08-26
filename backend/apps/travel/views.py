@@ -90,6 +90,19 @@ class HotelSearchView(APIView):
         return success_response(result)
 
 
+class SpotCatalogView(APIView):
+    """Curated Famous Spots catalog (countries -> iconic places)."""
+
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(tags=["travel"])
+    def get(self, request):
+        from apps.travel.spot_data import get_spot_catalog
+
+        country = request.query_params.get("country")
+        return success_response(get_spot_catalog(country))
+
+
 class EventsView(APIView):
     permission_classes = [IsAuthenticated]
 

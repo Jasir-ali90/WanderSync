@@ -11,7 +11,7 @@ export function Avatar({
   className?: string;
 }) {
   const size = className ?? "size-8 text-xs";
-  const ring = "border border-brand-500/40 shadow-[0_0_10px_rgba(134,59,255,.25)]";
+  const ring = "border border-sand-500/40 shadow-sm";
 
   if (url?.startsWith("preset:")) {
     const [, bg = "", emoji = "🧭"] = url.split(":");
@@ -42,7 +42,7 @@ export function Avatar({
     <span
       aria-hidden
       className={cn(
-        "grid shrink-0 place-items-center rounded-full border border-brand-500/40 bg-brand-500/15 font-bold text-brand-300",
+        "grid shrink-0 place-items-center rounded-full border border-sand-500/40 bg-sand-500/15 font-bold text-sand-300",
         size,
       )}
     >

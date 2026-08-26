@@ -59,17 +59,17 @@ export function SavedChats({
   return (
     <aside
       aria-label="Saved conversations"
-      className="hidden h-[calc(100vh-9rem)] w-64 shrink-0 flex-col overflow-hidden rounded-2xl border border-ink-700/80 bg-ink-900/80 backdrop-blur-md md:flex md:h-[calc(100vh-7rem)] shadow-xl"
+      className="hidden h-[calc(100vh-8.5rem)] w-64 shrink-0 flex-col overflow-hidden rounded-2xl border border-ink-700/80 bg-ink-900/90 shadow-lg backdrop-blur-sm md:flex md:h-[calc(100vh-6.5rem)]"
     >
-      <div className="flex items-center justify-between border-b border-ink-700/70 p-3">
-        <span className="text-xs font-bold uppercase tracking-wider text-brand-400 flex items-center gap-1.5">
+      <div className="flex items-center justify-between border-b border-ink-700/80 p-3">
+        <span className="text-xs font-bold uppercase tracking-wider text-sand-400 flex items-center gap-1.5">
           💬 Saved Chats
         </span>
         {onNewChat && (
           <button
             type="button"
             onClick={onNewChat}
-            className="rounded-lg bg-brand-500/15 px-2 py-1 text-[11px] font-semibold text-brand-300 hover:bg-brand-500/25 transition-colors flex items-center gap-1"
+            className="rounded-lg bg-sand-500/15 px-2 py-1 text-[11px] font-semibold text-sand-300 hover:bg-sand-500/25 transition-colors flex items-center gap-1 cursor-pointer"
           >
             <MessageSquarePlus className="size-3" /> New
           </button>
@@ -77,22 +77,22 @@ export function SavedChats({
       </div>
 
       {/* Search box */}
-      <div className="p-2 border-b border-ink-700/50">
+      <div className="p-2 border-b border-ink-700/60">
         <div className="relative flex items-center">
-          <Search className="absolute left-2.5 size-3.5 text-slate-500 pointer-events-none" />
+          <Search className="absolute left-2.5 size-3.5 text-slate-400 pointer-events-none" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search conversations..."
-            className="w-full rounded-lg border border-ink-700 bg-ink-950/70 py-1.5 pl-8 pr-3 text-xs text-slate-200 placeholder:text-slate-500 focus:border-brand-400 focus:outline-none"
+            className="w-full rounded-lg border border-ink-700 bg-ink-950/80 py-1.5 pl-8 pr-3 text-xs text-slate-200 placeholder:text-slate-500 focus:border-sand-400 focus:outline-none"
           />
         </div>
       </div>
 
-      {chats.isLoading && <p className="px-3 py-3 text-xs text-slate-500">Loading history…</p>}
+      {chats.isLoading && <p className="px-3 py-3 text-xs text-slate-400">Loading history…</p>}
       {!chats.isLoading && results.length === 0 && (
-        <p className="px-3 py-4 text-center text-xs text-slate-500">
+        <p className="px-3 py-4 text-center text-xs text-slate-400">
           {search ? "No matching chats found." : "No saved topics yet."}
         </p>
       )}
@@ -130,12 +130,12 @@ export function SavedChats({
                 className={cn(
                   "cursor-pointer rounded-xl px-3 py-2 text-left transition-all duration-200 border",
                   chat.id === activeId
-                    ? "bg-gradient-to-r from-brand-500/20 to-brand-600/10 border-brand-500/40 text-brand-200 shadow-md"
-                    : "border-transparent text-slate-300 hover:bg-ink-800/60 hover:text-slate-100",
+                    ? "bg-sand-500/15 border-sand-500/40 text-sand-200 shadow-sm font-medium"
+                    : "border-transparent text-slate-300 hover:bg-ink-800/70 hover:text-slate-100",
                 )}
               >
                 <div className="flex items-start justify-between gap-1">
-                  <span className="line-clamp-1 block text-xs font-semibold">
+                  <span className="line-clamp-1 block text-xs">
                     {chat.title || "Trip planning"}
                   </span>
                   <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
@@ -147,7 +147,7 @@ export function SavedChats({
                         setEditingId(chat.id);
                         setEditTitle(chat.title || "");
                       }}
-                      className="text-slate-400 hover:text-brand-300"
+                      className="text-slate-400 hover:text-sand-300"
                     >
                       <Edit2 className="size-3" />
                     </button>
@@ -164,7 +164,7 @@ export function SavedChats({
                     </button>
                   </div>
                 </div>
-                <div className="mt-1 flex items-center justify-between text-[10px] text-slate-500">
+                <div className="mt-1 flex items-center justify-between text-[10px] text-slate-400">
                   <span>{chat.message_count ?? 0} messages</span>
                   {chat.updated_at && (
                     <span>{new Date(chat.updated_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>

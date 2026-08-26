@@ -18,7 +18,6 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { Avatar } from "@/components/ui/Avatar";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
-import { ThemeToggle } from "@/components/common/ThemeToggle";
 
 const PUBLIC_LINKS = [
   { to: "/", label: "Home" },
@@ -34,15 +33,15 @@ export function Wordmark({ className }: { className?: string }) {
     <Link
       to={target}
       className={cn(
-        "group flex items-center gap-2 text-[15px] font-bold text-slate-100 transition-opacity hover:opacity-90",
+        "group flex items-center gap-2.5 text-[15px] font-bold text-slate-100 transition-opacity hover:opacity-90",
         className,
       )}
     >
-      <span className="grid size-7 place-items-center rounded-lg bg-gradient-to-tr from-brand-500 to-indigo-600 font-extrabold text-white shadow-md shadow-brand-500/30">
+      <span className="grid size-7 place-items-center rounded-lg bg-gradient-to-br from-sand-500 to-brand-600 font-extrabold text-ink-950 shadow-sm">
         W
       </span>
-      <span className="font-[family-name:var(--font-display)] tracking-tight">
-        Wander<span className="text-brand-400 font-extrabold">Sync</span>
+      <span className="font-[family-name:var(--font-display)] tracking-tight text-slate-100">
+        Wander<span className="text-sand-400 font-extrabold">Sync</span>
       </span>
     </Link>
   );
@@ -52,11 +51,10 @@ function PublicNavbar() {
   const { user } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
-  // Close the mobile menu whenever the route changes.
   const routeKey = location.pathname;
 
   return (
-    <header className="sticky top-0 z-40 border-b border-ink-700/60 bg-ink-950/85 backdrop-blur-md">
+    <header className="sticky top-0 z-40 border-b border-ink-700/60 bg-ink-950/90 backdrop-blur-md">
       <nav
         aria-label="Main"
         className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6"
@@ -72,8 +70,8 @@ function PublicNavbar() {
                   cn(
                     "relative rounded-lg px-3 py-2 text-sm transition-colors duration-200",
                     isActive
-                      ? "text-brand-300"
-                      : "text-slate-300 hover:text-slate-50",
+                      ? "text-sand-300 font-medium"
+                      : "text-slate-300 hover:text-slate-100",
                   )
                 }
               >
@@ -83,18 +81,17 @@ function PublicNavbar() {
                     {isActive && (
                       <motion.span
                         layoutId="public-nav-active"
-                        className="absolute inset-x-2 -bottom-0.5 h-0.5 rounded-full bg-brand-400"
+                        className="absolute inset-x-2 -bottom-0.5 h-0.5 rounded-full bg-sand-400"
                       />
                     )}
                   </>
                 )}
               </NavLink>
             </li>
-          ))}{" "}
+          ))}
         </ul>
 
-        <div className="hidden items-center gap-2 md:flex">
-          <ThemeToggle />
+        <div className="hidden items-center gap-2.5 md:flex">
           {user ? (
             <Button size="sm" onClick={() => (window.location.href = "/dashboard")}>
               Open app
@@ -103,7 +100,7 @@ function PublicNavbar() {
             <>
               <Link
                 to="/login"
-                className="rounded-lg px-3 py-2 text-sm text-slate-300 transition-colors hover:text-slate-50"
+                className="rounded-lg px-3 py-2 text-sm text-slate-300 transition-colors hover:text-slate-100"
               >
                 Sign in
               </Link>
@@ -135,7 +132,7 @@ function PublicNavbar() {
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.2 }}
-            className="overflow-hidden border-t border-ink-700/60 bg-ink-950/95 backdrop-blur-md md:hidden"
+            className="overflow-hidden border-t border-ink-700/60 bg-ink-950/98 backdrop-blur-md md:hidden"
           >
             <ul className="space-y-1 px-4 py-3">
               {PUBLIC_LINKS.map((link) => (
@@ -146,7 +143,7 @@ function PublicNavbar() {
                     className={({ isActive }) =>
                       cn(
                         "block rounded-lg px-3 py-2.5 text-sm",
-                        isActive ? "bg-ink-800 text-brand-300" : "text-slate-300 hover:bg-ink-800/60 hover:text-slate-50",
+                        isActive ? "bg-ink-800 text-sand-300 font-medium" : "text-slate-300 hover:bg-ink-800/60 hover:text-slate-100",
                       )
                     }
                   >
@@ -176,11 +173,11 @@ function PublicNavbar() {
 
 export function Footer() {
   return (
-    <footer className="border-t border-ink-700/60 py-10 text-sm text-slate-500">
+    <footer className="border-t border-ink-700/60 py-10 text-sm text-slate-400">
       <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 sm:px-6 md:flex-row">
         <Wordmark className="[&_span:last-child]:text-base [&_span:first-child]:size-7" />
         <p>From Dream to Itinerary. © {new Date().getFullYear()} WanderSync.</p>
-        <p className="text-xs">Built with Django · MongoDB · React</p>
+        <p className="text-xs text-slate-500">Built with Django · MongoDB · React</p>
       </div>
     </footer>
   );
@@ -191,7 +188,7 @@ import { Background3D } from "@/components/common/Background3D";
 export function PublicLayout() {
   const location = useLocation();
   return (
-    <div className="flex min-h-screen flex-col relative">
+    <div className="flex min-h-screen flex-col relative bg-ink-950">
       <Background3D />
       <PublicNavbar />
       <main className="flex-1">
@@ -229,7 +226,7 @@ export function ProtectedLayout() {
   return (
     <div className="flex min-h-screen flex-col bg-ink-950 relative">
       <Background3D />
-      <header className="sticky top-0 z-40 border-b border-ink-700/60 bg-ink-950/85 backdrop-blur">
+      <header className="sticky top-0 z-40 border-b border-ink-700/60 bg-ink-950/90 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">
           <Wordmark />
           <nav aria-label="App" className="hidden gap-1 md:flex">
@@ -239,8 +236,8 @@ export function ProtectedLayout() {
                 to={item.to}
                 className={({ isActive }) =>
                   cn(
-                    "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm",
-                    isActive ? "bg-ink-800 text-brand-300" : "text-slate-400 hover:text-slate-100",
+                    "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm transition-colors",
+                    isActive ? "bg-ink-800 text-sand-300 font-medium" : "text-slate-300 hover:text-slate-100",
                   )
                 }
               >
@@ -249,18 +246,17 @@ export function ProtectedLayout() {
               </NavLink>
             ))}
           </nav>
-          <div className="flex items-center gap-2 text-sm text-slate-400">
-            <ThemeToggle />
+          <div className="flex items-center gap-2.5 text-sm text-slate-300">
             {/* Multi-language Selector */}
-            <div className="flex items-center gap-1 rounded-full border border-brand-500/30 bg-ink-900 px-2 py-1 text-xs text-brand-300">
-              <Languages className="size-3.5 text-brand-400" />
+            <div className="flex items-center gap-1 rounded-lg border border-ink-700 bg-ink-900/80 px-2.5 py-1 text-xs text-sand-300">
+              <Languages className="size-3.5 text-sand-400" />
               <select
                 onChange={(e) => {
                   localStorage.setItem("ws_lang", e.target.value);
                   window.location.reload();
                 }}
                 defaultValue={localStorage.getItem("ws_lang") || "en"}
-                className="bg-transparent text-xs text-brand-200 focus:outline-none cursor-pointer"
+                className="bg-transparent text-xs text-slate-200 focus:outline-none cursor-pointer"
               >
                 <option value="en" className="bg-ink-950 text-slate-100">🇬🇧 EN</option>
                 <option value="ur" className="bg-ink-950 text-slate-100">🇵🇰 اردو</option>
@@ -268,7 +264,7 @@ export function ProtectedLayout() {
               </select>
             </div>
 
-            <span className="hidden truncate sm:inline">{user?.email}</span>
+            <span className="hidden truncate sm:inline text-xs text-slate-400">{user?.email}</span>
             <Avatar
               url={user?.profile?.avatar_url}
               fallbackName={user?.full_name || user?.email}
@@ -300,8 +296,8 @@ export function ProtectedLayout() {
         aria-label="Mobile"
         className={
           user?.is_staff
-            ? "fixed inset-x-0 bottom-0 z-40 grid grid-cols-6 border-t border-ink-700/70 bg-ink-900/95 backdrop-blur md:hidden"
-            : "fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-ink-700/70 bg-ink-900/95 backdrop-blur md:hidden"
+            ? "fixed inset-x-0 bottom-0 z-40 grid grid-cols-6 border-t border-ink-700/80 bg-ink-950/95 backdrop-blur md:hidden"
+            : "fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-ink-700/80 bg-ink-950/95 backdrop-blur md:hidden"
         }
       >
         {navItems.map((item) => (
@@ -311,7 +307,7 @@ export function ProtectedLayout() {
             className={({ isActive }) =>
               cn(
                 "flex flex-col items-center gap-0.5 py-2.5 text-[11px]",
-                isActive ? "text-brand-300" : "text-slate-500",
+                isActive ? "text-sand-300 font-semibold" : "text-slate-400",
               )
             }
           >

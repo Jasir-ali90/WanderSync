@@ -10,7 +10,6 @@ import LandingPage from "@/pages/LandingPage";
 import LoginPage from "@/pages/auth/LoginPage";
 import RegisterPage from "@/pages/auth/RegisterPage";
 import SharedTripPage from "@/pages/SharedTripPage";
-import { ThemeProvider } from "@/context/ThemeContext";
 
 /* Route-level code splitting keeps the initial bundle lean. */
 const AdminPage = lazy(() => import("@/pages/AdminPage"));
@@ -93,14 +92,12 @@ function AppShell() {
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <BrowserRouter>
-            <AppShell />
-          </BrowserRouter>
-        </AuthProvider>
-      </QueryClientProvider>
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <BrowserRouter>
+          <AppShell />
+        </BrowserRouter>
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }

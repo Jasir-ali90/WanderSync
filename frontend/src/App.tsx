@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
+import { CustomCursor } from "@/components/common/CustomCursor";
 import { ProtectedLayout, PublicLayout } from "@/components/layout/Layouts";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Splash } from "@/components/Splash";
@@ -10,9 +11,7 @@ import LandingPage from "@/pages/LandingPage";
 import LoginPage from "@/pages/auth/LoginPage";
 import RegisterPage from "@/pages/auth/RegisterPage";
 import SharedTripPage from "@/pages/SharedTripPage";
-import { ThemeProvider } from "@/context/ThemeContext";
 
-/* Route-level code splitting keeps the initial bundle lean. */
 const AdminPage = lazy(() => import("@/pages/AdminPage"));
 const DashboardPage = lazy(() => import("@/pages/DashboardPage"));
 const FamousSpotsPage = lazy(() => import("@/pages/FamousSpotsPage"));
@@ -30,10 +29,6 @@ const queryClient = new QueryClient({
   },
 });
 
-/** Shown until the stored session is restored, then gates lazy routes.
- * The splash stays visible for a minimum beat so the brand moment lands
- * even when auth + the route chunk resolve instantly.
- */
 import { WanderSyncPreloader } from "@/components/common/Preloader";
 
 const MIN_SPLASH_MS = 2500;
@@ -53,20 +48,16 @@ function AppShell() {
   return (
     <Suspense fallback={<Splash compact />}>
       <Routes>
-        {/* Public marketing site */}
         <Route element={<PublicLayout />}>
           <Route path="/" element={<LandingPage />} />
           <Route path="/features" element={<FeaturesPage />} />
           <Route path="/how-it-works" element={<HowItWorksPage />} />
         </Route>
 
-        {/* Auth (standalone layouts) */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        {/* Public read-only shared itinerary */}
         <Route path="/shared/:token" element={<SharedTripPage />} />
 
-        {/* Protected application */}
         <Route
           element={
             <ProtectedRoute>
@@ -83,7 +74,6 @@ function AppShell() {
           <Route path="/admin" element={<AdminPage />} />
         </Route>
 
-        {/* Redirect /explore to /spots */}
         <Route path="/explore" element={<Navigate to="/spots" replace />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
@@ -93,14 +83,13 @@ function AppShell() {
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <BrowserRouter>
-            <AppShell />
-          </BrowserRouter>
-        </AuthProvider>
-      </QueryClientProvider>
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <BrowserRouter>
+          <CustomCursor />
+          <AppShell />
+        </BrowserRouter>
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }

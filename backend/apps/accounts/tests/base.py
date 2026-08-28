@@ -6,6 +6,7 @@ from apps.accounts.documents import User
 PASSWORD = "Sup3r-Secret-Pass!"  # noqa: S105 - test fixture only
 
 REGISTER_URL = "/api/v1/auth/register/"
+VERIFY_OTP_URL = "/api/v1/auth/verify-otp/"
 LOGIN_URL = "/api/v1/auth/login/"
 LOGOUT_URL = "/api/v1/auth/logout/"
 REFRESH_URL = "/api/v1/auth/refresh/"
@@ -34,6 +35,12 @@ class AccountsTestBase:
             REGISTER_URL, payload or REGISTER_PAYLOAD, content_type="application/json"
         )
 
+    def activate(self, email=None):
+        """Simulate the OTP verification step by activating the account."""
+        user = User.objects(email=email or REGISTER_PAYLOAD["email"]).first()
+        if user is not None:
+            user.modify(email_verified=True, is_active=True, otp_hash="")
+
     def login(self, email=None, password=None):
         return self.client.post(
             LOGIN_URL,
@@ -45,8 +52,9 @@ class AccountsTestBase:
         )
 
     def auth_client(self):
-        """Register + login, returning the client authenticated as that user."""
+        """Register + activate, returning the client authenticated as that user."""
         self.register()
+        self.activate()
         response = self.login()
         access = response.json()["data"]["tokens"]["access"]
         self.client.defaults["HTTP_AUTHORIZATION"] = f"Bearer {access}"

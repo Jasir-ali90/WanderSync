@@ -54,6 +54,7 @@ class MeTests(AccountsTestBase, SimpleTestCase):
 
     def test_tampered_token_rejected(self):
         self.register()
+        self.activate()
         access = self.login().json()["data"]["tokens"]["access"]
         self.client.defaults["HTTP_AUTHORIZATION"] = f"Bearer {access[:-2]}aa"
         response = self.client.get(ME_URL)
@@ -63,6 +64,7 @@ class MeTests(AccountsTestBase, SimpleTestCase):
 class TokenLifecycleTests(AccountsTestBase, SimpleTestCase):
     def test_refresh_issues_new_access_token(self):
         self.register()
+        self.activate()
         refresh = self.login().json()["data"]["tokens"]["refresh"]
         response = self.client.post(
             REFRESH_URL, {"refresh": refresh}, content_type="application/json"

@@ -78,7 +78,7 @@ export function TripMap({
     return (
       <Card className="flex h-64 flex-col items-center justify-center gap-2 p-6 text-center">
         <span aria-hidden className="text-3xl">🗺️</span>
-        <p className="text-sm text-slate-300">No map locations yet.</p>
+        <p className="text-sm text-slate-600">No map locations yet.</p>
         <p className="max-w-sm text-xs text-slate-500">
           Activities don't have coordinates saved. Use “Find locations” to resolve them
           automatically via the places service — pins then appear on the map.
@@ -93,14 +93,14 @@ export function TripMap({
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-ink-700">
-      <div className="flex items-center justify-between gap-3 border-b border-ink-700 bg-ink-900/60 px-3 py-1.5">
+    <div className="overflow-hidden rounded-xl border border-slate-300">
+      <div className="flex items-center justify-between gap-3 border-b border-slate-300 bg-white/60 px-3 py-1.5">
         <p className="text-[11px] text-slate-500">
           {activeDay ? `Showing day ${activeDay} · ` : "Showing all days · "}
           {allPoints.length} stop{allPoints.length === 1 ? "" : "s"}
         </p>
         {googleReady && (
-          <div role="group" aria-label="Map provider" className="flex overflow-hidden rounded-full border border-ink-600">
+          <div role="group" aria-label="Map provider" className="flex overflow-hidden rounded-full border border-slate-300">
             {(["google", "osm"] as Engine[]).map((option) => (
               <button
                 key={option}
@@ -110,8 +110,8 @@ export function TripMap({
                 className={cn(
                   "px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-wide transition-colors",
                   engine === option
-                    ? "bg-brand-500 text-ink-950"
-                    : "bg-transparent text-slate-400 hover:text-slate-200",
+                    ? "bg-blue-700 text-slate-900"
+                    : "bg-transparent text-slate-500 hover:text-slate-700",
                 )}
               >
                 {option === "google" ? "Google Maps" : "OpenStreetMap"}
@@ -127,7 +127,7 @@ export function TripMap({
         <LeafletTripMap points={allPoints} />
       )}
 
-      <p className="border-t border-ink-700 bg-ink-900/60 px-3 py-1.5 text-[11px] text-slate-500">
+      <p className="border-t border-slate-300 bg-white/60 px-3 py-1.5 text-[11px] text-slate-500">
         Tap a pin for each stop's details · numbered markers follow the daily plan order
       </p>
     </div>
@@ -200,7 +200,7 @@ function GoogleTripMap({ points }: { points: MapPoint[] }) {
   );
 }
 
-/** OpenStreetMap/Leaflet fallback engine — Dark Mode CartoDB tiles. */
+/** OpenStreetMap/Leaflet fallback engine — standard light tiles. */
 function LeafletTripMap({ points }: { points: MapPoint[] }) {
   const first = points[0];
   return (
@@ -212,16 +212,16 @@ function LeafletTripMap({ points }: { points: MapPoint[] }) {
       aria-label="Itinerary map"
     >
       <TileLayer
-        attribution='&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       {points.map((point, index) => (
         <Marker key={`${point.name}-${index}`} position={[point.lat, point.lng]} icon={BRAND_ICON}>
-          <Popup className="custom-dark-popup">
-            <div className="p-1 min-w-[140px] text-ink-950 font-sans">
-              <strong className="text-sm font-bold block leading-tight">{index + 1}. {point.name}</strong>
-              <span className="text-[11px] text-slate-700 block mt-0.5">{point.location || "—"}</span>
-              <div className="mt-1 flex items-center justify-between text-[10px] font-semibold text-brand-600">
+          <Popup>
+            <div className="p-1 min-w-[140px] font-sans">
+              <strong className="text-sm font-bold block leading-tight text-slate-900">{index + 1}. {point.name}</strong>
+              <span className="text-[11px] text-slate-600 block mt-0.5">{point.location || "—"}</span>
+              <div className="mt-1 flex items-center justify-between text-[10px] font-semibold text-blue-600">
                 <span>⏰ {point.start_time || "—"}</span>
                 <span>{point.category}</span>
               </div>

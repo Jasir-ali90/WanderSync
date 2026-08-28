@@ -22,7 +22,7 @@ export function ActivityForm({
 
   return (
     <form
-      className="grid gap-3 border-t border-ink-700 p-4 sm:grid-cols-2"
+      className="grid gap-3 border-t border-slate-300 p-4 sm:grid-cols-2"
       onSubmit={(event) => {
         event.preventDefault();
         if (!name.trim()) return;
@@ -36,7 +36,7 @@ export function ActivityForm({
       }}
     >
       <label className="block sm:col-span-2">
-        <span className="mb-1 block text-xs font-medium text-slate-300">Activity name</span>
+        <span className="mb-1 block text-xs font-medium text-slate-600">Activity name</span>
         <Input
           value={name}
           onChange={(event) => setName(event.target.value)}
@@ -45,11 +45,11 @@ export function ActivityForm({
         />
       </label>
       <label className="block">
-        <span className="mb-1 block text-xs font-medium text-slate-300">Start</span>
+        <span className="mb-1 block text-xs font-medium text-slate-600">Start</span>
         <Input type="time" value={start} onChange={(event) => setStart(event.target.value)} />
       </label>
       <label className="block">
-        <span className="mb-1 block text-xs font-medium text-slate-300">Duration (min)</span>
+        <span className="mb-1 block text-xs font-medium text-slate-600">Duration (min)</span>
         <Input
           type="number"
           min={15}
@@ -59,7 +59,7 @@ export function ActivityForm({
         />
       </label>
       <label className="block">
-        <span className="mb-1 block text-xs font-medium text-slate-300">Est. cost per person</span>
+        <span className="mb-1 block text-xs font-medium text-slate-600">Est. cost per person</span>
         <Input type="number" min={0} value={cost} onChange={(event) => setCost(event.target.value)} />
       </label>
       <div className="flex items-end justify-end gap-2 sm:col-span-2">

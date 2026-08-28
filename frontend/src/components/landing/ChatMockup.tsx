@@ -13,12 +13,12 @@ const DEMO_CHAT = [
 export function ChatMockup() {
   return (
     <Card className="w-full max-w-md p-4" aria-label="Example planning conversation">
-      <div className="flex items-center gap-2 border-b border-ink-700 pb-3">
-        <span className="grid size-7 place-items-center rounded-lg bg-brand-500/15 text-brand-400">
+      <div className="flex items-center gap-2 border-b border-slate-300 pb-3">
+        <span className="grid size-7 place-items-center rounded-lg bg-blue-700/15 text-brand-400">
           <Bot aria-hidden className="size-4" />
         </span>
-        <p className="text-sm font-medium text-slate-200">WanderSync Planner</p>
-        <span className="ml-auto rounded-full bg-brand-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-brand-300">
+        <p className="text-sm font-medium text-slate-700">WanderSync Planner</p>
+        <span className="ml-auto rounded-full bg-blue-700/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-blue-700">
           Live demo
         </span>
       </div>
@@ -32,15 +32,15 @@ export function ChatMockup() {
             transition={{ duration: 0.35 }}
             className={
               message.role === "user"
-                ? "ml-auto max-w-[85%] rounded-xl rounded-br-sm bg-brand-500 px-3 py-2 text-xs leading-relaxed text-ink-950"
-                : "max-w-[85%] rounded-xl rounded-bl-sm bg-ink-700 px-3 py-2 text-xs leading-relaxed text-slate-200"
+                ? "ml-auto max-w-[85%] rounded-xl rounded-br-sm bg-blue-700 px-3 py-2 text-xs leading-relaxed text-slate-900"
+                : "max-w-[85%] rounded-xl rounded-bl-sm bg-slate-200 px-3 py-2 text-xs leading-relaxed text-slate-700"
             }
           >
             {message.text}
           </motion.div>
         ))}
       </div>
-      <div className="mt-3 flex items-center gap-2 rounded-lg border border-ink-600 bg-ink-900 px-3 py-2 text-xs text-slate-500">
+      <div className="mt-3 flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-500">
         <Sparkles aria-hidden className="size-3.5 text-brand-400" />
         Ask anything — “make day 2 more relaxed”…
       </div>

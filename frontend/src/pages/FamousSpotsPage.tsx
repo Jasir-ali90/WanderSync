@@ -53,11 +53,11 @@ export default function FamousSpotsPage() {
 
   return (
     <div className="space-y-6">
-      <header className="bg-radial-teal rounded-xl border border-ink-700 p-5">
-        <h1 className="font-[family-name:var(--font-display)] text-2xl font-bold text-slate-50">
-          Famous Spots 🌍
+      <header className="rounded-xl border border-blue-100 bg-white p-5 shadow-sm">
+        <h1 className="font-[family-name:var(--font-display)] text-2xl font-bold text-slate-900">
+          Famous Spots
         </h1>
-        <p className="mt-1 max-w-2xl text-sm text-slate-400">
+        <p className="mt-1 max-w-2xl text-sm text-slate-600">
           Hand-picked icons of the world's greatest countries. Open a country to
           explore its landmarks, check live weather, and ask the AI planner to
           build a trip around it.
@@ -86,13 +86,13 @@ export default function FamousSpotsPage() {
                     src={`https://flagcdn.com/w160/${country.code}.png`}
                     alt={`${country.country} flag`}
                     loading="lazy"
-                    className="h-14 w-20 rounded-lg border border-ink-600 object-cover shadow-md"
+                    className="h-14 w-20 rounded-lg border border-slate-300 object-cover shadow-md"
                   />
                   <div className="min-w-0">
-                    <h2 className="font-[family-name:var(--font-display)] text-lg font-bold text-slate-50">
+                    <h2 className="font-[family-name:var(--font-display)] text-lg font-bold text-slate-900">
                       {country.country}
                     </h2>
-                    <p className="line-clamp-1 text-sm text-slate-400">{country.tagline}</p>
+                    <p className="line-clamp-1 text-sm text-slate-500">{country.tagline}</p>
                     <p className="mt-1 text-[11px] uppercase tracking-wider text-brand-400">
                       {country.spots.length} famous spots — {isOpen ? "close" : "explore"}
                     </p>
@@ -103,7 +103,7 @@ export default function FamousSpotsPage() {
                   <motion.ul
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="divide-y divide-ink-700/70 border-t border-ink-700"
+                    className="divide-y divide-slate-200/70 border-t border-slate-300"
                   >
                     {country.spots.map((spot) => {
                       const spotKey = `${country.code}-${spot.name}`;
@@ -113,18 +113,18 @@ export default function FamousSpotsPage() {
                           <div className="flex gap-3">
                             <span aria-hidden className="text-3xl">{spot.emoji}</span>
                             <div>
-                              <h3 className="font-semibold text-slate-100">
+                              <h3 className="font-semibold text-slate-800">
                                 {spot.name}{" "}
                                 <span className="text-xs font-normal text-slate-500">· {spot.city}</span>
                               </h3>
-                              <p className="mt-1 max-w-xl text-sm leading-relaxed text-slate-400">
+                              <p className="mt-1 max-w-xl text-sm leading-relaxed text-slate-500">
                                 {spot.description}
                               </p>
                               {wx === "loading" && (
                                 <p className="mt-2 text-xs text-slate-500">Checking live weather…</p>
                               )}
                               {wx && wx !== "loading" && (
-                                <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-brand-500/10 px-2.5 py-1 text-xs text-brand-300">
+                                <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-blue-700/10 px-2.5 py-1 text-xs text-blue-700">
                                   <CloudSun aria-hidden className="size-3.5" />
                                   Live now: {wx.condition}, {wx.temp}°C
                                 </p>
@@ -158,7 +158,7 @@ export default function FamousSpotsPage() {
 
       <Card className="flex flex-col items-center gap-3 p-6 text-center sm:flex-row sm:text-left">
         <MapPin aria-hidden className="size-8 shrink-0 text-brand-400" />
-        <p className="flex-1 text-sm text-slate-400">
+        <p className="flex-1 text-sm text-slate-500">
           Want a full multi-day itinerary around one of these spots? The planner
           builds routes, schedules and budgets automatically.
         </p>

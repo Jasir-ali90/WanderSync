@@ -59,9 +59,9 @@ export function SavedChats({
   return (
     <aside
       aria-label="Saved conversations"
-      className="hidden h-[calc(100vh-9rem)] w-64 shrink-0 flex-col overflow-hidden rounded-2xl border border-ink-700/80 bg-ink-900/80 backdrop-blur-md md:flex md:h-[calc(100vh-7rem)] shadow-xl"
+      className="hidden h-[calc(100vh-9rem)] w-64 shrink-0 flex-col overflow-hidden rounded-2xl border border-slate-300/80 bg-white/80 backdrop-blur-md md:flex md:h-[calc(100vh-7rem)] shadow-xl"
     >
-      <div className="flex items-center justify-between border-b border-ink-700/70 p-3">
+      <div className="flex items-center justify-between border-b border-slate-300/70 p-3">
         <span className="text-xs font-bold uppercase tracking-wider text-brand-400 flex items-center gap-1.5">
           💬 Saved Chats
         </span>
@@ -69,7 +69,7 @@ export function SavedChats({
           <button
             type="button"
             onClick={onNewChat}
-            className="rounded-lg bg-brand-500/15 px-2 py-1 text-[11px] font-semibold text-brand-300 hover:bg-brand-500/25 transition-colors flex items-center gap-1"
+            className="rounded-lg bg-blue-700/15 px-2 py-1 text-[11px] font-semibold text-blue-700 hover:bg-blue-700/25 transition-colors flex items-center gap-1"
           >
             <MessageSquarePlus className="size-3" /> New
           </button>
@@ -77,7 +77,7 @@ export function SavedChats({
       </div>
 
       {/* Search box */}
-      <div className="p-2 border-b border-ink-700/50">
+      <div className="p-2 border-b border-slate-300/50">
         <div className="relative flex items-center">
           <Search className="absolute left-2.5 size-3.5 text-slate-500 pointer-events-none" />
           <input
@@ -85,7 +85,7 @@ export function SavedChats({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search conversations..."
-            className="w-full rounded-lg border border-ink-700 bg-ink-950/70 py-1.5 pl-8 pr-3 text-xs text-slate-200 placeholder:text-slate-500 focus:border-brand-400 focus:outline-none"
+            className="w-full rounded-lg border border-slate-300 bg-slate-50/70 py-1.5 pl-8 pr-3 text-xs text-slate-700 placeholder:text-slate-500 focus:border-brand-400 focus:outline-none"
           />
         </div>
       </div>
@@ -101,25 +101,25 @@ export function SavedChats({
         {results.map((chat) => (
           <li key={chat.id} className="group relative">
             {editingId === chat.id ? (
-              <div className="flex items-center gap-1 p-1 bg-ink-800 rounded-lg">
+              <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-lg">
                 <input
                   type="text"
                   value={editTitle}
                   onChange={(e) => setEditTitle(e.target.value)}
-                  className="flex-1 rounded bg-ink-950 px-2 py-1 text-xs text-slate-100 focus:outline-none"
+                  className="flex-1 rounded bg-slate-50 px-2 py-1 text-xs text-slate-800 focus:outline-none"
                   autoFocus
                 />
                 <button
                   type="button"
                   onClick={() => saveRename(chat.id)}
-                  className="p-1 text-emerald-400 hover:text-emerald-300"
+                  className="p-1 text-blue-600 hover:text-blue-700"
                 >
                   <Check className="size-3.5" />
                 </button>
                 <button
                   type="button"
                   onClick={() => setEditingId(null)}
-                  className="p-1 text-slate-400 hover:text-slate-300"
+                  className="p-1 text-slate-500 hover:text-slate-600"
                 >
                   <X className="size-3.5" />
                 </button>
@@ -130,8 +130,8 @@ export function SavedChats({
                 className={cn(
                   "cursor-pointer rounded-xl px-3 py-2 text-left transition-all duration-200 border",
                   chat.id === activeId
-                    ? "bg-gradient-to-r from-brand-500/20 to-brand-600/10 border-brand-500/40 text-brand-200 shadow-md"
-                    : "border-transparent text-slate-300 hover:bg-ink-800/60 hover:text-slate-100",
+                    ? "bg-gradient-to-r from-blue-600/20 to-brand-600/10 border-brand-500/40 text-blue-700 shadow-md"
+                    : "border-transparent text-slate-600 hover:bg-slate-100/60 hover:text-slate-800",
                 )}
               >
                 <div className="flex items-start justify-between gap-1">
@@ -147,7 +147,7 @@ export function SavedChats({
                         setEditingId(chat.id);
                         setEditTitle(chat.title || "");
                       }}
-                      className="text-slate-400 hover:text-brand-300"
+                      className="text-slate-500 hover:text-blue-700"
                     >
                       <Edit2 className="size-3" />
                     </button>
@@ -158,7 +158,7 @@ export function SavedChats({
                         e.stopPropagation();
                         void remove(chat.id);
                       }}
-                      className="text-slate-400 hover:text-red-400"
+                      className="text-slate-500 hover:text-red-400"
                     >
                       <Trash2 className="size-3" />
                     </button>

@@ -37,7 +37,10 @@ class AuthThrottle(ScopedRateThrottle):
 
 
 class RegisterView(APIView):
-    """Create an account and immediately return a token pair."""
+    """Create a pending account and issue an email verification code.
+
+    The account only becomes active after the OTP is verified, so an
+    unverified user can never sign in or bypass the email check."""
 
     permission_classes = [AllowAny]
     throttle_classes = [AuthThrottle]
@@ -49,12 +52,93 @@ class RegisterView(APIView):
         serializer = RegisterSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
+        from apps.accounts.services import issue_otp
+
+        code = issue_otp(user)
+        payload = {"email": user.email, "email_verified": False}
+        # Console OTP deployment: in DEBUG the code is echoed back so the demo
+        # flow completes end-to-end; in production it only exists in the logs.
+        from django.conf import settings as django_settings
+
+        if django_settings.DEBUG:
+            payload["dev_otp"] = code
+        return success_response(
+            payload,
+            message=(
+                "Account created. Enter the 6-digit verification code "
+                "sent to your email to activate your account."
+            ),
+            status=status.HTTP_201_CREATED,
+        )
+
+
+class VerifyOtpView(APIView):
+    """Verify the email OTP, activate the account and return a token pair."""
+
+    permission_classes = [AllowAny]
+    throttle_classes = [AuthThrottle]
+    serializer_class = None
+
+
+    @extend_schema(auth=[], tags=["auth"])
+    def post(self, request):
+        from apps.accounts.services import OTP_MAX_ATTEMPTS, verify_otp
+        from apps.common.responses import error_response
+
+        email = (request.data.get("email") or "").strip().lower()
+        code = (request.data.get("code") or "").strip()
+        user = User.objects(email=email).first()
+        if user is None:
+            return error_response("Invalid verification request.", code="INVALID_OTP")
+        if user.email_verified and user.is_active:
+            tokens = issue_tokens(user)
+            return success_response(
+                {"user": user.to_safe_dict(), "tokens": tokens},
+                message="Email already verified - you are signed in.",
+            )
+        if not verify_otp(user, code):
+            remaining = max(0, OTP_MAX_ATTEMPTS - user.otp_attempts)
+            detail = "Too many incorrect attempts. Request a new code." if remaining == 0 else "That code is invalid or has expired. Please try again."
+            return error_response(detail, code="INVALID_OTP")
         tokens = issue_tokens(user)
         return success_response(
             {"user": user.to_safe_dict(), "tokens": tokens},
-            message="Account created successfully.",
-            status=status.HTTP_201_CREATED,
+            message="Email verified successfully - welcome to WanderSync!",
         )
+
+
+class ResendOtpView(APIView):
+    """Re-issue a verification code, respecting the resend cooldown."""
+
+    permission_classes = [AllowAny]
+    throttle_classes = [AuthThrottle]
+    serializer_class = None
+
+
+    @extend_schema(auth=[], tags=["auth"])
+    def post(self, request):
+        from apps.accounts.services import issue_otp, otp_cooldown_remaining
+        from apps.common.responses import error_response
+
+        email = (request.data.get("email") or "").strip().lower()
+        user = User.objects(email=email).first()
+        if user is None:
+            return success_response(message="If that account exists, a new code has been sent.")
+        if user.email_verified:
+            return error_response("This email is already verified. Please sign in.", code="ALREADY_VERIFIED")
+        remaining = otp_cooldown_remaining(user)
+        if remaining > 0:
+            return error_response(
+                f"Please wait {remaining} seconds before requesting a new code.",
+                code="OTP_COOLDOWN",
+            )
+        code = issue_otp(user)
+        payload = {"message": "A new verification code has been sent."}
+        from django.conf import settings as django_settings
+
+        if django_settings.DEBUG:
+            payload["dev_otp"] = code
+        return success_response(payload)
 
 
 class LoginView(APIView):

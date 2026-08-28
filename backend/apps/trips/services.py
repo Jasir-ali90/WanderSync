@@ -59,6 +59,32 @@ def create_trip_from_itinerary(
         ]
     )
 
+    from apps.trips.exchange import convert
+
+    travelers = int(requirements.get("travelers") or 2)
+    base_currency = "PKR"
+    # AI cost estimates arrive as per-person USD figures; the demo engine
+    # already prices per group. Normalise everything into the PKR base display
+    # currency so every figure a user sees is consistent and convertible.
+    cost_scale = travelers if engine == "openai" else 1
+    for day in itinerary.days:
+        for activity in day.activities:
+            per_person = float(activity.cost_estimate or 0)
+            activity.cost_estimate = round(
+                convert(per_person, "USD", base_currency) * cost_scale, 2
+            )
+
+    stated_currency = str(requirements.get("budget_currency") or base_currency)
+    budget_amount = (
+        convert(float(requirements["budget_amount"]), stated_currency, base_currency)
+        if requirements.get("budget_amount")
+        else None
+    )
+    # Keep the scoring pipeline on the same (PKR) basis as the stored figures.
+    if requirements.get("budget_amount") is not None:
+        requirements["budget_amount"] = budget_amount
+    requirements["budget_currency"] = base_currency
+
     duration = max(1, min(len(days), 365))
     style = str(requirements.get("travel_style") or "balanced")
     title = f"{duration}-day {style} trip to {draft.destination}"
@@ -70,13 +96,9 @@ def create_trip_from_itinerary(
         start_date=start,
         end_date=end,
         duration_days=duration,
-        travelers=int(requirements.get("travelers") or 2),
-        budget_amount=(
-            float(requirements["budget_amount"])
-            if requirements.get("budget_amount")
-            else None
-        ),
-        budget_currency=str(requirements.get("budget_currency") or "USD"),
+        travelers=travelers,
+        budget_amount=budget_amount,
+        budget_currency=base_currency,
         budget_level=str(requirements.get("budget_level") or "moderate"),
         travel_style=style,
         interests=list(requirements.get("interests") or []),

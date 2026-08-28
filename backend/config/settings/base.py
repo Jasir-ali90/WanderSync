@@ -120,6 +120,7 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
+    {"NAME": "apps.accounts.password_validation.ComplexityValidator"}
 ]
 
 LANGUAGE_CODE = "en-us"
@@ -204,11 +205,11 @@ TEST_RUNNER = "config.test_runner.NoDatabaseRunner"
 # ------------------------------------------------------------------
 CORS_ALLOWED_ORIGINS = env_list(
     "CORS_ALLOWED_ORIGINS",
-    "http://localhost:5173,http://127.0.0.1:5173,http://localhost:4173",
+    "http://localhost:5173,http://127.0.0.1:5173,http://localhost:4173,https://wander-sync-psi.vercel.app",
 )
 CSRF_TRUSTED_ORIGINS = env_list(
     "CSRF_TRUSTED_ORIGINS",
-    "http://localhost:5173,http://localhost:8000,http://127.0.0.1:8000",
+    "http://localhost:5173,http://localhost:8000,http://127.0.0.1:8000,https://wander-sync-psi.vercel.app",
 )
 
 # ------------------------------------------------------------------
@@ -225,7 +226,7 @@ MONGODB_CONNECT_TIMEOUT_MS = env_int("MONGODB_CONNECT_TIMEOUT_MS", 10000)
 # External integrations (server-side only — never exposed to the client)
 # ------------------------------------------------------------------
 OPENAI_API_KEY = env("OPENAI_API_KEY", "")
-OPENAI_MODEL = env("OPENAI_MODEL", "gpt-4o-mini")
+OPENAI_MODEL = env("OPENAI_MODEL", "llama-3.3-70b-versatile")
 # Optional: any OpenAI-compatible endpoint (Groq, OpenRouter, Together,
 # DeepSeek, Ollama...). Example: https://api.groq.com/openai/v1
 OPENAI_BASE_URL = env("OPENAI_BASE_URL", "")
@@ -236,6 +237,7 @@ WEATHER_API_KEY = env("WEATHER_API_KEY", "")
 CLIENT_URL = env("CLIENT_URL", "http://localhost:5173")
 
 CACHE_TTL_SECONDS = env_int("CACHE_TTL_SECONDS", 900)
+CURRENCY_API_TIMEOUT_SECONDS = env_int("CURRENCY_API_TIMEOUT_SECONDS", 4)
 
 # ------------------------------------------------------------------
 # Security headers

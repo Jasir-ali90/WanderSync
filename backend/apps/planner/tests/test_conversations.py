@@ -13,7 +13,19 @@ def _register_second_user():
         {"email": "ben@example.com", "password": "Sup3r-Secret-Pass!"},
         content_type="application/json",
     )
-    token = reg.json()["data"]["tokens"]["access"]
+    assert reg.status_code == 201, reg.content
+    # Simulate the required email OTP verification before signing in.
+    from apps.accounts.documents import User
+
+    user = User.objects(email="ben@example.com").first()
+    if user is not None:
+        user.modify(email_verified=True, is_active=True, otp_hash="")
+    login = other.post(
+        "/api/v1/auth/login/",
+        {"email": "ben@example.com", "password": "Sup3r-Secret-Pass!"},
+        content_type="application/json",
+    )
+    token = login.json()["data"]["tokens"]["access"]
     other.defaults["HTTP_AUTHORIZATION"] = f"Bearer {token}"
     return other
 

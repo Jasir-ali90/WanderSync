@@ -72,19 +72,19 @@ export default function FeaturesPage() {
   return (
     <div className="px-4 py-16 sm:px-6 relative">
       <SectionTitle
-        eyebrow="VVIP Architecture"
+        eyebrow="Platform Architecture"
         title="Generative Travel Platform"
-        subtitle="Every feature is engineered end-to-end with Django, MongoEngine, and React for maximum performance, accuracy, and luxury UX."
+        subtitle="Every feature is engineered end-to-end with Django, MongoEngine, and React for maximum performance, accuracy, and a polished user experience."
       />
 
       {/* Quick highlights */}
       <div className="mx-auto mt-10 grid max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {HIGHLIGHTS.map((item) => (
-          <Card key={item.text} className="flex items-start gap-3 p-4 border-brand-500/20 bg-ink-900/60 backdrop-blur-md">
-            <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-brand-500/15 text-brand-400">
+          <Card key={item.text} className="flex items-start gap-3 p-4 border-blue-100 bg-white shadow-sm">
+            <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-blue-50 text-blue-600 ring-1 ring-blue-100">
               <item.icon aria-hidden className="size-4" />
             </span>
-            <p className="text-xs leading-relaxed text-slate-300">{item.text}</p>
+            <p className="text-xs leading-relaxed text-slate-700">{item.text}</p>
           </Card>
         ))}
       </div>
@@ -96,23 +96,23 @@ export default function FeaturesPage() {
             whileHover={{ y: -6, scale: 1.01 }}
             transition={{ duration: 0.3 }}
           >
-            <Card className="overflow-hidden border-white/10 bg-gradient-to-b from-ink-900/90 to-ink-950/90 p-0 shadow-2xl backdrop-blur-xl">
+            <Card className="overflow-hidden border-slate-200 bg-white p-0 shadow-card transition-all duration-300 hover:shadow-lift">
               <div className="relative h-48 w-full overflow-hidden">
                 <img src={block.image} alt={block.title} className="h-full w-full object-cover transition-transform duration-700 hover:scale-110" />
-                <div className="absolute inset-0 bg-gradient-to-t from-ink-950 via-ink-950/40 to-transparent" />
-                <div className="absolute top-4 left-4 grid size-11 place-items-center rounded-xl bg-ink-950/80 backdrop-blur-md border border-brand-500/40 text-brand-300 shadow-xl">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+                <div className="absolute top-4 left-4 grid size-11 place-items-center rounded-xl bg-white/95 border border-blue-100 text-blue-600 shadow-lg">
                   <block.icon aria-hidden className="size-6" />
                 </div>
               </div>
 
               <div className="p-6">
-                <h3 className="font-[family-name:var(--font-display)] text-xl font-bold text-slate-100">
+                <h3 className="font-[family-name:var(--font-display)] text-xl font-bold text-slate-900">
                   {block.title}
                 </h3>
-                <ul className="mt-4 space-y-2.5 text-sm text-slate-300">
+                <ul className="mt-4 space-y-2.5 text-sm text-slate-600">
                   {block.points.map((point) => (
                     <li key={point} className="flex items-start gap-2.5">
-                      <CheckCircle2 aria-hidden className="mt-0.5 size-4 shrink-0 text-brand-400" />
+                      <CheckCircle2 aria-hidden className="mt-0.5 size-4 shrink-0 text-blue-600" />
                       <span>{point}</span>
                     </li>
                   ))}
@@ -125,7 +125,7 @@ export default function FeaturesPage() {
 
       <div className="mt-16 flex justify-center">
         <Link to="/planner">
-          <Button size="lg" className="rounded-full px-10 shadow-2xl shadow-brand-500/30">
+          <Button size="lg" className="rounded-full px-10">
             Launch AI Planner <Sparkles aria-hidden className="size-4 ml-1" />
           </Button>
         </Link>

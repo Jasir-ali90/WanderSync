@@ -147,7 +147,7 @@ export function WeatherPanel({
   if (geo.isLoading) return <Spinner label="Finding your destination…" />;
   if (geo.isError || !spot) {
     return (
-      <Card className="flex items-center gap-3 p-4 text-sm text-slate-400">
+      <Card className="flex items-center gap-3 p-4 text-sm text-slate-500">
         <CloudSun aria-hidden className="size-5 shrink-0 text-sand-300" />
         Couldn't locate “{destination}” for the weather panel right now.
       </Card>
@@ -157,7 +157,7 @@ export function WeatherPanel({
   if (weather.isLoading) return <Spinner label="Checking the skies…" />;
   if (weather.isError || !weather.data) {
     return (
-      <Card className="flex items-center gap-3 p-4 text-sm text-slate-400">
+      <Card className="flex items-center gap-3 p-4 text-sm text-slate-500">
         <CloudSun aria-hidden className="size-5 shrink-0 text-sand-300" />
         Weather service is unavailable at the moment.
       </Card>
@@ -185,7 +185,7 @@ function WeatherBody({
         Weather · {destination}{" "}
         <span
           className={`ml-1 rounded-full px-2 py-0.5 align-middle text-[10px] uppercase ${
-            data.source === "demo" ? "bg-amber-500/10 text-amber-300" : "bg-emerald-500/10 text-emerald-300"
+            data.source === "demo" ? "bg-amber-50 text-amber-700" : "bg-emerald-500/10 text-emerald-600"
           }`}
         >
           {data.source === "demo" ? "sample data" : "live"}
@@ -197,14 +197,14 @@ function WeatherBody({
           <span aria-hidden className="text-5xl leading-none">{current.icon}</span>
           <div>
             <p className="text-xs uppercase tracking-wide text-slate-500">Now in {destination}</p>
-            <p className="font-[family-name:var(--font-display)] text-3xl font-bold text-slate-50 tabular-nums">
+            <p className="font-[family-name:var(--font-display)] text-3xl font-bold text-slate-900 tabular-nums">
               {current.temperature_c != null ? `${Math.round(current.temperature_c)}°C` : "—"}
             </p>
-            <p className="mt-0.5 text-sm text-slate-300">{current.condition}</p>
+            <p className="mt-0.5 text-sm text-slate-600">{current.condition}</p>
           </div>
         </div>
 
-        <dl className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-slate-400">
+        <dl className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-slate-500">
           <div className="flex items-center gap-1.5">
             <Thermometer aria-hidden className="size-4 text-brand-400" />
             <dt>Feels like</dt>
@@ -243,11 +243,11 @@ function WeatherBody({
         {data.forecast.map((f) => (
           <li
             key={f.date}
-            className="rounded-xl border border-ink-700 bg-ink-800/80 p-3 transition-colors hover:border-brand-500/40"
+            className="rounded-xl border border-slate-300 bg-slate-100/80 p-3 transition-colors hover:border-brand-500/40"
           >
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-brand-300">
+                <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">
                   {formatWeekday(f.date)}
                   {startDate && f.date === startDate && " · arrive"}
                 </p>
@@ -255,17 +255,17 @@ function WeatherBody({
               </div>
               <span aria-hidden className="text-2xl">{f.icon}</span>
             </div>
-            <p className="mt-1.5 text-sm font-medium text-slate-100 tabular-nums">
+            <p className="mt-1.5 text-sm font-medium text-slate-800 tabular-nums">
               {f.temp_max_c != null ? Math.round(f.temp_max_c) : "?"}° /{" "}
               {f.temp_min_c != null ? Math.round(f.temp_min_c) : "?"}°C
             </p>
-            <p className="truncate text-[11px] text-slate-400">{f.condition}</p>
+            <p className="truncate text-[11px] text-slate-500">{f.condition}</p>
             {(f.precipitation_chance_pct ?? 0) >= 30 || (f.precipitation_mm ?? 0) > 0 ? (
               <p className="mt-1 text-[11px] text-sky-300">
                 ☔ {f.precipitation_chance_pct != null ? `${Math.round(f.precipitation_chance_pct)}% rain chance` : `${f.precipitation_mm} mm expected`}
               </p>
             ) : (
-              <p className="mt-1 text-[11px] text-emerald-300/80">Dry day · great for sightseeing</p>
+              <p className="mt-1 text-[11px] text-emerald-700">Dry day · great for sightseeing</p>
             )}
             <p className="mt-1 flex items-center gap-2 text-[10px] tabular-nums text-slate-500">
               <span title="Sunrise">🌅 {hhmm(f.sunrise)}</span>
@@ -281,13 +281,13 @@ function WeatherBody({
         const tips = packingAdvice(data.forecast);
         if (tips.length === 0) return null;
         return (
-          <Card className="border-brand-500/20 bg-brand-500/[0.04] p-4">
-            <p className="text-xs font-semibold uppercase tracking-wider text-brand-300">
+          <Card className="border-blue-200 bg-blue-700/[0.04] p-4">
+            <p className="text-xs font-semibold uppercase tracking-wider text-blue-700">
               🧳 Packing suggestions for your dates
             </p>
             <ul className="mt-2 grid gap-1.5 sm:grid-cols-2">
               {tips.map((tip) => (
-                <li key={tip} className="text-xs leading-relaxed text-slate-300">{tip}</li>
+                <li key={tip} className="text-xs leading-relaxed text-slate-600">{tip}</li>
               ))}
             </ul>
           </Card>

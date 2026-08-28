@@ -1,29 +1,51 @@
 @import "tailwindcss";
 
 /*
- * WanderSync "Royal Dusk" design system.
- * Deep plum-midnight surfaces · champagne-gold accents · ivory text.
- * Serif display (Playfair) + Inter body = luxury travel editorial feel.
+ * WanderSync — Premium Travel Platform (Light Theme)
+ * Cool gray-blue page surfaces · White cards · Deep navy headings ·
+ * Professional blue accents. One theme, no dark mode.
  */
 @theme {
-  --color-ink-950: #0a0812;
-  --color-ink-900: #100d1c;
-  --color-ink-800: #171329;
-  --color-ink-700: #221d3b;
-  --color-ink-600: #322b55;
-  --color-royal-700: #4c3a8f;
-  --color-royal-500: #7c5cff;
-  --color-brand-600: #b8913f;
-  --color-brand-500: #d4af5e;
-  --color-brand-400: #e6c87f;
-  --color-brand-300: #f3e0ac;
-  --color-sand-400: #e8c489;
-  --color-sand-300: #f5e6c4;
+  /* ---- Surfaces: page → card → inset (semantic "ink" scale) ---- */
+  --color-ink-950: #eef2f8; /* page background — deeper cool gray so white cards pop */
+  --color-ink-900: #ffffff; /* card surface */
+  --color-ink-800: #f4f7fb; /* inset / secondary surface */
+  --color-ink-700: #e3e9f2; /* default border */
+  --color-ink-600: #cbd5e1; /* strong border */
+  --color-ink-500: #b6c2d2; /* subtle border */
 
-  --font-display: "Playfair Display", ui-serif, Georgia, serif;
-  --font-body: "Inter", ui-sans-serif, system-ui, sans-serif;
+  /* ---- Text scale — STANDARD Tailwind light semantics ----
+   * (slate-900 headings → slate-500 muted; components migrated below) */
+  --color-slate-50: #f8fafc;
+  --color-slate-100: #f1f5f9;
+  --color-slate-200: #e2e8f0;
+  --color-slate-300: #cbd5e1;
+  --color-slate-400: #94a3b8;
+  --color-slate-500: #64748b;
+  --color-slate-600: #475569;
+  --color-slate-700: #334155;
+  --color-slate-800: #1e293b;
+  --color-slate-900: #0f172a; /* headings — deep navy */
 
-  --shadow-card: 0 14px 40px -14px rgb(0 0 0 / 0.65);
+  /* ---- Professional blue accent system ---- */
+  --color-royal-700: #1e3a8a;
+  --color-royal-500: #2563eb;
+  --color-brand-700: #1e40af;
+  --color-brand-600: #1d4ed8;
+  --color-brand-500: #2563eb; /* primary actions */
+  --color-brand-400: #2563eb; /* accent text (contrast-safe on white) */
+  --color-brand-300: #1d4ed8; /* accent text (contrast-safe on white) */
+  --color-sand-400: #3b82f6;
+  --color-sand-300: #93c5fd;
+
+  --color-success: #15803d;
+  --color-danger: #dc2626;
+
+  --font-display: "Playfair Display", Georgia, serif;
+  --font-body: "Inter", system-ui, -apple-system, sans-serif;
+
+  --shadow-card: 0 1px 2px 0 rgb(15 23 42 / 0.05), 0 6px 16px -4px rgb(15 23 42 / 0.1);
+  --shadow-lift: 0 16px 40px -10px rgb(15 23 42 / 0.18);
 }
 
 html,
@@ -34,52 +56,109 @@ body,
 
 body {
   font-family: var(--font-body);
-  background:
-    radial-gradient(70% 45% at 82% -8%, rgb(124 92 255 / 0.10), transparent 65%),
-    radial-gradient(50% 40% at 8% 100%, rgb(212 175 94 / 0.07), transparent 70%),
-    var(--color-ink-950);
-  color: #f4f1ea;
+  background-color: var(--color-ink-950);
+  color: var(--color-slate-700);
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ---- Advanced custom cursor (desktop / fine pointers only) ---- */
+@media (hover: hover) and (pointer: fine) {
+  html.custom-cursor,
+  html.custom-cursor body,
+  html.custom-cursor a,
+  html.custom-cursor button,
+  html.custom-cursor [role="button"] {
+    cursor: none;
+  }
+  /* Keep the native text caret visible inside form fields. */
+  html.custom-cursor input,
+  html.custom-cursor textarea,
+  html.custom-cursor select {
+    cursor: auto;
+  }
+}
+.ws-cursor-dot {
+  position: fixed;
+  top: -4px;
+  left: -4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: #2563eb;
+  pointer-events: none;
+  z-index: 9999;
+  box-shadow: 0 0 12px rgba(37, 99, 235, 0.55);
+}
+.ws-cursor-ring {
+  position: fixed;
+  top: -18px;
+  left: -18px;
+  width: 36px;
+  height: 36px;
+  border-radius: 9999px;
+  border: 1.5px solid rgba(37, 99, 235, 0.45);
+  background: rgba(37, 99, 235, 0);
+  pointer-events: none;
+  z-index: 9998;
+}
+@media (hover: none), (pointer: coarse) {
+  .ws-cursor-dot,
+  .ws-cursor-ring {
+    display: none;
+  }
 }
 
 ::selection {
-  background-color: rgb(212 175 94 / 0.35);
+  background-color: rgb(37 99 235 / 0.14);
+  color: #1e3a8a;
 }
 
-/* Gold hairline divider */
+/* Subtle blue-tinted page atmosphere for hero/marketing bands. */
+.bg-radial-teal {
+  background:
+    radial-gradient(60rem 30rem at 15% -10%, rgb(37 99 235 / 0.07), transparent 60%),
+    radial-gradient(50rem 26rem at 90% 0%, rgb(29 78 216 / 0.05), transparent 55%),
+    var(--color-ink-950);
+}
+
+.glass-panel {
+  background: #ffffff;
+  border: 1px solid var(--color-ink-700);
+  box-shadow: var(--shadow-card);
+}
+
 .gold-hairline {
-  background: linear-gradient(90deg, transparent, rgb(212 175 94 / 0.55), transparent);
+  background: var(--color-ink-700);
   height: 1px;
 }
 
-/* Legacy utility kept for hero/CTA sections — now royal gold/violet glow. */
-.bg-radial-teal {
-  background-image:
-    radial-gradient(60% 50% at 75% 15%, rgb(124 92 255 / 0.13), transparent 68%),
-    radial-gradient(45% 45% at 12% 85%, rgb(212 175 94 / 0.10), transparent 70%);
-}
-
-/* Elegant glass panel used by premium cards. */
-.glass-panel {
-  background: linear-gradient(160deg, rgb(38 33 85 / 0.35), rgb(16 13 28 / 0.75));
-  backdrop-filter: blur(10px);
-  border: 1px solid rgb(212 175 94 / 0.16);
-}
-
-/* Shimmering gold gradient text. */
 .text-gold-gradient {
-  background: linear-gradient(105deg, #f3e0ac 0%, #d4af5e 42%, #b8913f 62%, #f3e0ac 95%);
-  background-size: 200% auto;
+  background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  animation: gold-shimmer 6s linear infinite;
 }
 
-@keyframes gold-shimmer {
-  to {
-    background-position: 200% center;
-  }
+/* Focus visibility for keyboard users across the app. */
+:where(a, button, input, select, textarea):focus-visible {
+  outline: 2px solid var(--color-brand-500);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Elegant thin scrollbars in scroll panes (chat, carousels). */
+.thin-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-ink-600) transparent;
+}
+.thin-scroll::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+.thin-scroll::-webkit-scrollbar-thumb {
+  background: var(--color-ink-600);
+  border-radius: 9999px;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -90,69 +169,5 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-}
-
-/* Light Mode Overrides with high-contrast text and warm ivory/gold aesthetic */
-html.light body {
-  background:
-    radial-gradient(70% 45% at 82% -8%, rgb(124 92 255 / 0.06), transparent 65%),
-    radial-gradient(50% 40% at 8% 100%, rgb(212 175 94 / 0.12), transparent 70%),
-    #fcfbfa;
-  color: #1a162b;
-}
-
-html.light .glass-panel {
-  background: linear-gradient(160deg, rgb(255 255 255 / 0.85), rgb(245 242 238 / 0.95));
-  backdrop-filter: blur(10px);
-  border: 1px solid rgb(184 145 63 / 0.25);
-  box-shadow: 0 10px 30px -10px rgb(0 0 0 / 0.08);
-}
-
-html.light header {
-  background-color: rgb(255 255 255 / 0.90) !important;
-  border-color: rgb(226 218 206 / 0.8) !important;
-}
-
-html.light .bg-ink-950,
-html.light .bg-ink-900,
-html.light .bg-ink-800 {
-  background-color: #ffffff !important;
-  color: #1a162b !important;
-}
-
-html.light .bg-ink-700\/60,
-html.light .bg-ink-700\/50,
-html.light .bg-ink-700\/40,
-html.light .bg-ink-700\/30 {
-  background-color: #f3f0e8 !important;
-  border-color: #e2dacd !important;
-}
-
-html.light .text-slate-100,
-html.light .text-slate-200,
-html.light .text-slate-300,
-html.light .text-slate-400 {
-  color: #2d264a !important;
-}
-
-html.light .text-slate-500,
-html.light .text-slate-400 {
-  color: #585078 !important;
-}
-
-html.light .border-ink-700\/60,
-html.light .border-ink-700\/50,
-html.light .border-ink-700,
-html.light .border-slate-800,
-html.light .border-slate-700 {
-  border-color: #e2dacd !important;
-}
-
-html.light .text-gold-gradient {
-  background: linear-gradient(105deg, #7c5208 0%, #b8860b 42%, #d4af5e 62%, #7c5208 95%);
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
 }
 

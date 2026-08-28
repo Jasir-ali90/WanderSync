@@ -1,7 +1,11 @@
 """Account business logic — kept out of views/serializers."""
 import logging
 
-from django.contrib.auth.hashers import make_password
+import secrets
+from datetime import timedelta
+
+from django.contrib.auth.hashers import check_password, make_password
+from django.utils import timezone
 from mongoengine import DoesNotExist  # noqa: F401  (re-exported for callers)
 
 from apps.accounts.documents import User
@@ -32,7 +36,9 @@ def normalize_email(email: str) -> str:
 
 
 def create_user(*, email: str, password: str, full_name: str = "") -> User:
-    """Create an active user with a hashed password. Raises on duplicates."""
+    """Create a pending (inactive, unverified) user with a hashed password.
+
+    The account is activated only after the email OTP is verified."""
     email = normalize_email(email)
     if not email:
         raise AccountError("Email is required.", code="VALIDATION_ERROR")
@@ -42,6 +48,8 @@ def create_user(*, email: str, password: str, full_name: str = "") -> User:
     user = User(
         email=email,
         full_name=(full_name or "").strip()[:120],
+        is_active=False,
+        email_verified=False,
     )
     user.set_password(password)
     user.save()
@@ -80,4 +88,67 @@ def touch_last_login(user: User) -> None:
 
 def get_user_by_public_id(public_id: str) -> User | None:
     return User.objects(public_id=str(public_id)).first()
+
+# -- email OTP verification ----------------------------------------------
+OTP_LENGTH = 6
+OTP_TTL_MINUTES = 10
+OTP_MAX_ATTEMPTS = 5
+OTP_RESEND_COOLDOWN_SECONDS = 60
+
+
+def validate_full_name(name: str) -> str:
+    '''Names may only contain letters, spaces and simple punctuation.'''
+    cleaned = (name or "").strip()
+    allowed = "-."
+    if cleaned and not all(ch.isalpha() or ch.isspace() or ch in allowed for ch in cleaned):
+        raise AccountError(
+            "Name can only contain letters, spaces, hyphens and apostrophes.",
+            code="INVALID_NAME",
+        )
+    return cleaned[:120]
+
+
+def issue_otp(user: User) -> str:
+    '''Generate a cryptographically secure 6-digit code (hashed at rest).'''
+    code = str(secrets.randbelow(10 ** OTP_LENGTH)).zfill(OTP_LENGTH)
+    now = timezone.now()
+    user.modify(
+        otp_hash=make_password(code),
+        otp_expires_at=now + timedelta(minutes=OTP_TTL_MINUTES),
+        otp_attempts=0,
+        otp_last_sent_at=now,
+    )
+    # Console delivery for this deployment: the code only ever appears in
+    # the server log, never in an API response or the frontend.
+    logger.info("WANDERSYNC OTP for %s: %s", user.email, code)
+    return code
+
+
+def otp_cooldown_remaining(user: User) -> int:
+    if not user.otp_last_sent_at:
+        return 0
+    elapsed = (timezone.now() - user.otp_last_sent_at).total_seconds()
+    return max(0, int(OTP_RESEND_COOLDOWN_SECONDS - elapsed))
+
+
+def verify_otp(user: User, code: str) -> bool:
+    '''Check the code, enforce expiry and attempts, then activate the account.'''
+    code = (code or "").strip()
+    if not code or not user.otp_hash:
+        return False
+    if user.otp_attempts >= OTP_MAX_ATTEMPTS:
+        return False
+    if not user.otp_expires_at or timezone.now() > user.otp_expires_at:
+        return False
+    user.modify(otp_attempts=user.otp_attempts + 1)
+    if not check_password(code, user.otp_hash):
+        return False
+    user.modify(
+        otp_hash="",
+        otp_expires_at=None,
+        otp_attempts=0,
+        email_verified=True,
+        is_active=True,
+    )
+    return True
 

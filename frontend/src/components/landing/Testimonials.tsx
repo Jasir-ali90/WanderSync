@@ -43,33 +43,33 @@ export function Testimonials() {
         </p>
         <h2
           id="testimonials-heading"
-          className="mt-2 text-center font-[family-name:var(--font-display)] text-3xl font-bold tracking-tight text-slate-50 sm:text-4xl"
+          className="mt-2 text-center font-[family-name:var(--font-display)] text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl"
         >
           Don't take our word for it
         </h2>
         <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {TESTIMONIALS.map((t) => (
             <li key={t.name}>
-              <figure className="flex h-full flex-col rounded-xl border border-ink-700 bg-ink-800/80 p-5">
+              <figure className="flex h-full flex-col rounded-xl border border-slate-300 bg-slate-100/80 p-5">
                 <div className="flex gap-0.5 text-sm" aria-label={`${t.rating} out of 5 stars`}>
                   {Array.from({ length: 5 }, (_, i) => (
-                    <span key={i} aria-hidden className={i < t.rating ? "text-brand-400" : "text-ink-600"}>
+                    <span key={i} aria-hidden className={i < t.rating ? "text-brand-400" : "text-slate-500"}>
                       ★
                     </span>
                   ))}
                 </div>
-                <blockquote className="mt-3 flex-1 text-sm leading-relaxed text-slate-300">
+                <blockquote className="mt-3 flex-1 text-sm leading-relaxed text-slate-600">
                   “{t.quote}”
                 </blockquote>
-                <figcaption className="mt-4 flex items-center gap-3 border-t border-ink-700 pt-3">
+                <figcaption className="mt-4 flex items-center gap-3 border-t border-slate-300 pt-3">
                   <span
                     aria-hidden
-                    className="grid size-9 shrink-0 place-items-center rounded-full bg-brand-500/15 text-xs font-bold text-brand-300"
+                    className="grid size-9 shrink-0 place-items-center rounded-full bg-blue-700/15 text-xs font-bold text-blue-700"
                   >
                     {t.initials}
                   </span>
                   <span>
-                    <span className="block text-sm font-medium text-slate-100">{t.name}</span>
+                    <span className="block text-sm font-medium text-slate-800">{t.name}</span>
                     <span className="block text-xs text-slate-500">{t.role}</span>
                   </span>
                 </figcaption>
@@ -119,7 +119,7 @@ export function Faq() {
         </p>
         <h2
           id="faq-heading"
-          className="mt-2 text-center font-[family-name:var(--font-display)] text-3xl font-bold tracking-tight text-slate-50 sm:text-4xl"
+          className="mt-2 text-center font-[family-name:var(--font-display)] text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl"
         >
           Frequently asked questions
         </h2>
@@ -127,9 +127,9 @@ export function Faq() {
           {FAQS.map((item) => (
             <details
               key={item.q}
-              className="group rounded-xl border border-ink-700 bg-ink-800/80 px-4 py-3 open:border-brand-500/40"
+              className="group rounded-xl border border-slate-300 bg-slate-100/80 px-4 py-3 open:border-blue-300"
             >
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-medium text-slate-100 [&::-webkit-details-marker]:hidden">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-medium text-slate-800 [&::-webkit-details-marker]:hidden">
                 {item.q}
                 <span
                   aria-hidden
@@ -138,7 +138,7 @@ export function Faq() {
                   ＋
                 </span>
               </summary>
-              <p className="mt-2.5 text-sm leading-relaxed text-slate-400">{item.a}</p>
+              <p className="mt-2.5 text-sm leading-relaxed text-slate-500">{item.a}</p>
             </details>
           ))}
         </div>

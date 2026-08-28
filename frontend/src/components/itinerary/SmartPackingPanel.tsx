@@ -39,25 +39,25 @@ export function SmartPackingPanel() {
   const progressPct = Math.round((packedCount / items.length) * 100);
 
   return (
-    <div className="space-y-6 rounded-3xl border border-brand-500/30 bg-ink-900/90 p-6 backdrop-blur-2xl shadow-2xl">
-      <div className="flex items-center justify-between border-b border-ink-700/60 pb-4">
+    <div className="space-y-6 rounded-3xl border border-blue-200 bg-white p-6 backdrop-blur-2xl shadow-2xl">
+      <div className="flex items-center justify-between border-b border-slate-300/60 pb-4">
         <div>
-          <h3 className="flex items-center gap-2 text-lg font-bold text-slate-100">
-            <Luggage className="size-5 text-brand-400" /> Weather-Aware AI Packing Assistant
+          <h3 className="flex items-center gap-2 text-lg font-bold text-slate-800">
+            <Luggage className="size-5 text-blue-600" /> Weather-Aware AI Packing Assistant
           </h3>
-          <p className="text-xs text-slate-400">Tailored checklist generated automatically based on destination weather & planned activities.</p>
+          <p className="text-xs text-slate-500">Tailored checklist generated automatically based on destination weather & planned activities.</p>
         </div>
-        <span className="text-xs font-bold text-brand-300">{packedCount}/{items.length} Packed ({progressPct}%)</span>
+        <span className="text-xs font-bold text-blue-700">{packedCount}/{items.length} Packed ({progressPct}%)</span>
       </div>
 
       {/* Progress Bar */}
-      <div className="h-2 w-full rounded-full bg-ink-950 overflow-hidden">
-        <div className="h-full bg-gradient-to-r from-brand-500 to-cyan-400 transition-all duration-500" style={{ width: `${progressPct}%` }} />
+      <div className="h-2 w-full rounded-full bg-slate-50 overflow-hidden">
+        <div className="h-full bg-gradient-to-r from-blue-600 to-blue-400 transition-all duration-500" style={{ width: `${progressPct}%` }} />
       </div>
 
       {/* Rain Alert Weather Tip */}
-      <div className="flex items-center gap-2 rounded-2xl border border-cyan-500/30 bg-cyan-500/10 p-3 text-xs text-cyan-300 font-semibold">
-        <CloudRain className="size-4 shrink-0 text-cyan-400 animate-pulse" />
+      <div className="flex items-center gap-2 rounded-2xl border border-blue-200 bg-blue-100 p-3 text-xs text-blue-700 font-semibold">
+        <CloudRain className="size-4 shrink-0 text-blue-600 animate-pulse" />
         <span>🌧️ Smart Forecast Sync: Rain is expected on Day 2 in Hunza. Waterproof shoes & rain jacket have been auto-added.</span>
       </div>
 
@@ -69,12 +69,12 @@ export function SmartPackingPanel() {
             onClick={() => togglePacked(item.id)}
             className={`flex items-center justify-between rounded-xl border p-3 cursor-pointer transition-all ${
               item.packed
-                ? "border-emerald-500/30 bg-emerald-500/10 text-slate-300 line-through"
-                : "border-ink-700/60 bg-ink-950/80 text-slate-100 hover:border-brand-500/40"
+                ? "border-emerald-500/30 bg-emerald-50 text-slate-600 line-through"
+                : "border-slate-300/60 bg-slate-50/80 text-slate-800 hover:border-brand-500/40"
             }`}
           >
             <span className="text-xs font-semibold">{item.name}</span>
-            <div className={`grid size-6 place-items-center rounded-lg border ${item.packed ? "bg-emerald-500 border-emerald-500 text-ink-950" : "border-ink-600"}`}>
+            <div className={`grid size-6 place-items-center rounded-lg border ${item.packed ? "bg-emerald-500 border-emerald-500 text-slate-900" : "border-slate-300"}`}>
               {item.packed && <Check className="size-4 stroke-[3]" />}
             </div>
           </div>
@@ -88,7 +88,7 @@ export function SmartPackingPanel() {
           value={newItem}
           onChange={(e) => setNewItem(e.target.value)}
           placeholder="Add custom packing item..."
-          className="h-10 flex-1 rounded-xl border border-ink-700 bg-ink-950 px-3 text-xs text-slate-100 focus:border-brand-500 focus:outline-none"
+          className="h-10 flex-1 rounded-xl border border-slate-300 bg-slate-50 px-3 text-xs text-slate-800 focus:border-blue-500 focus:outline-none"
         />
         <Button size="sm" type="submit" className="rounded-xl">
           <Plus className="size-4 mr-1" /> Add Item

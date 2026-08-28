@@ -124,7 +124,7 @@ export default function TripDetailPage() {
   if (trip.isError || !trip.data) {
     return (
       <Card className="p-6 text-center">
-        <p className="text-sm text-slate-300">Trip not found.</p>
+        <p className="text-sm text-slate-600">Trip not found.</p>
         <Link to="/trips" className="mt-2 inline-block text-sm text-brand-400">← Back to trips</Link>
       </Card>
     );
@@ -144,18 +144,18 @@ export default function TripDetailPage() {
 
   return (
     <div className="space-y-5">
-      <Link to="/trips" className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-slate-200">
+      <Link to="/trips" className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700">
         <ArrowLeft aria-hidden className="size-3.5" /> All trips
       </Link>
 
-      <header className="bg-radial-teal rounded-xl border border-ink-700 p-5">
+      <header className="rounded-xl border border-blue-100 bg-white p-5 shadow-card">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.18em] text-brand-400">{data.destination}</p>
-            <h1 className="mt-1 font-[family-name:var(--font-display)] text-2xl font-bold text-slate-50">{data.title}</h1>
+            <p className="text-xs uppercase tracking-[0.18em] text-blue-600">{data.destination}</p>
+            <h1 className="mt-1 font-[family-name:var(--font-display)] text-2xl font-bold text-slate-900">{data.title}</h1>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button size="sm" onClick={() => setShowSimulation(true)} className="rounded-xl font-bold bg-gradient-to-r from-brand-500 to-indigo-600 shadow-lg shadow-brand-500/30">
+            <Button size="sm" onClick={() => setShowSimulation(true)} className="rounded-xl font-bold">
               ✨ Experience My Trip
             </Button>
             <Button size="sm" variant="secondary" onClick={() => setShowEdit(true)}>
@@ -185,12 +185,12 @@ export default function TripDetailPage() {
           </div>
         </div>
         {actionError && (
-          <p role="alert" className="mt-3 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-300">
+          <p role="alert" className="mt-3 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-600">
             {actionError}
           </p>
         )}
         {shareInfo && (
-          <p className="mt-3 truncate rounded-lg border border-brand-500/30 bg-brand-500/10 px-3 py-2 text-xs text-brand-200">
+          <p className="mt-3 truncate rounded-lg border border-blue-200 bg-blue-700/10 px-3 py-2 text-xs text-blue-700">
             Share link: {window.location.origin}
             {shareInfo.url}
           </p>
@@ -202,9 +202,9 @@ export default function TripDetailPage() {
             ["Est. total", `${data.itinerary.total_estimated_cost.toLocaleString()} ${currency}`],
             ["Score", data.optimization.score !== null ? `${data.optimization.score}/100` : "—"],
           ].map(([label, value]) => (
-            <div key={label} className="rounded-lg bg-ink-900/60 px-3 py-2">
+            <div key={label} className="rounded-lg bg-slate-50 px-3 py-2">
               <dt className="text-[11px] uppercase tracking-wide text-slate-500">{label}</dt>
-              <dd className="mt-0.5 font-medium text-slate-100">{value}</dd>
+              <dd className="mt-0.5 font-medium text-slate-800">{value}</dd>
             </div>
           ))}
         </dl>
@@ -221,8 +221,8 @@ export default function TripDetailPage() {
             className={cn(
               "rounded-lg px-3.5 py-1.5 text-xs font-medium transition-colors",
               d.day_number === day?.day_number
-                ? "bg-brand-500 text-ink-950"
-                : "bg-ink-800 text-slate-400 hover:text-slate-200",
+                ? "bg-blue-700 text-white"
+                : "bg-slate-100 text-slate-500 hover:text-slate-700",
             )}
           >
             Day {d.day_number}
@@ -232,10 +232,10 @@ export default function TripDetailPage() {
 
       {day && (
         <Card className="overflow-hidden">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-ink-700 bg-ink-900/60 px-4 py-3">
-            <h2 className="font-medium text-slate-100">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-slate-50 px-4 py-3">
+            <h2 className="font-medium text-slate-800">
               Day {day.day_number}
-              {day.title && <span className="ml-2 text-sm font-normal text-slate-400">{day.title}</span>}
+              {day.title && <span className="ml-2 text-sm font-normal text-slate-500">{day.title}</span>}
             </h2>
             <div className="flex items-center gap-3">
               <p className="text-xs text-slate-500">est. {day.estimated_cost.toLocaleString()} {currency}</p>
@@ -246,7 +246,7 @@ export default function TripDetailPage() {
                 onChange={(event) => {
                   if (event.target.value) void regenerate.mutate(event.target.value);
                 }}
-                className="h-8 rounded-lg border border-ink-600 bg-ink-900 px-2 text-xs text-slate-200"
+                className="h-8 rounded-lg border border-slate-300 bg-white px-2 text-xs text-slate-700"
               >
                 <option value="" disabled>
                   {regenerate.isPending ? "Regenerating…" : "Regenerate…"}
@@ -258,16 +258,16 @@ export default function TripDetailPage() {
             </div>
           </div>
 
-          <ol className="divide-y divide-ink-700/70">
+          <ol className="divide-y divide-slate-200">
             {day.activities.map((activity, index) => (
               <li key={`${activity.name}-${index}`} className="flex gap-3 px-4 py-3">
-                <span className="w-12 shrink-0 pt-0.5 text-xs font-medium tabular-nums text-brand-300">
+                <span className="w-12 shrink-0 pt-0.5 text-xs font-medium tabular-nums text-blue-700">
                   {activity.start_time || "—"}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-slate-100">{activity.name}</p>
+                  <p className="truncate text-sm font-medium text-slate-800">{activity.name}</p>
                   {activity.description && (
-                    <p className="mt-0.5 line-clamp-2 text-xs leading-relaxed text-slate-400">{activity.description}</p>
+                    <p className="mt-0.5 line-clamp-2 text-xs leading-relaxed text-slate-500">{activity.description}</p>
                   )}
                   <p className="mt-1 flex flex-wrap gap-2 text-[11px] text-slate-500">
                     <span>{activity.duration_minutes} min</span>
@@ -286,7 +286,7 @@ export default function TripDetailPage() {
                   size="sm"
                   aria-label={`Remove ${activity.name}`}
                   onClick={() => void removeActivity.mutate(index)}
-                  className="shrink-0 text-slate-500 hover:text-red-300"
+                  className="shrink-0 text-slate-500 hover:text-red-600"
                 >
                   <X aria-hidden className="size-4" />
                 </Button>
@@ -300,7 +300,7 @@ export default function TripDetailPage() {
             </p>
           )}
 
-          <div className="border-t border-ink-700 p-3">
+          <div className="border-t border-slate-200 p-3">
             {showAdd ? (
               <ActivityForm
                 onCancel={() => setShowAdd(false)}
@@ -337,7 +337,7 @@ export default function TripDetailPage() {
       {budgetData && (
         <Card className="p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="flex items-center gap-2 font-medium text-slate-100">
+            <h2 className="flex items-center gap-2 font-medium text-slate-800">
               <Wallet aria-hidden className="size-4 text-brand-400" /> Budget breakdown
             </h2>
             <p className="text-[11px] text-slate-500">Estimated values — not guaranteed prices.</p>
@@ -348,32 +348,32 @@ export default function TripDetailPage() {
               return (
                 <div key={category}>
                   <div className="flex items-baseline justify-between text-xs">
-                    <dt className="text-slate-300">{CATEGORY_LABELS[category] ?? category}</dt>
-                    <dd className="tabular-nums text-slate-400">
+                    <dt className="text-slate-600">{CATEGORY_LABELS[category] ?? category}</dt>
+                    <dd className="tabular-nums text-slate-500">
                       {amount.toLocaleString()} {budgetData.currency}
                     </dd>
                   </div>
                   <div
                     role="img"
                     aria-label={`${CATEGORY_LABELS[category] ?? category}: ${share.toFixed(0)} percent of estimated cost`}
-                    className="mt-1 h-1.5 overflow-hidden rounded-full bg-ink-700"
+                    className="mt-1 h-1.5 overflow-hidden rounded-full bg-slate-200"
                   >
-                    <div className="h-full rounded-full bg-gradient-to-r from-brand-600 to-brand-400" style={{ width: `${Math.max(share, 1)}%` }} />
+                    <div className="h-full rounded-full bg-gradient-to-r from-blue-600 to-blue-400" style={{ width: `${Math.max(share, 1)}%` }} />
                   </div>
                 </div>
               );
             })}
           </dl>
-          <div className="mt-4 grid grid-cols-3 gap-2 border-t border-ink-700 pt-3 text-center text-xs">
+          <div className="mt-4 grid grid-cols-3 gap-2 border-t border-slate-200 pt-3 text-center text-xs">
             <div>
               <p className="text-[10px] uppercase tracking-wide text-slate-500">Daily avg</p>
-              <p className="font-medium text-slate-100 tabular-nums">
+              <p className="font-medium text-slate-800 tabular-nums">
                 {budgetData.daily_average.toLocaleString()} {budgetData.currency}
               </p>
             </div>
             <div>
               <p className="text-[10px] uppercase tracking-wide text-slate-500">Declared budget</p>
-              <p className="font-medium text-slate-100 tabular-nums">
+              <p className="font-medium text-slate-800 tabular-nums">
                 {budgetData.declared_budget != null
                   ? `${budgetData.declared_budget.toLocaleString()} ${budgetData.currency}`
                   : "—"}
@@ -383,8 +383,8 @@ export default function TripDetailPage() {
               <p className="text-[10px] uppercase tracking-wide text-slate-500">Remaining</p>
               <p className={`font-medium tabular-nums ${
                 budgetData.budget_remaining != null && budgetData.budget_remaining < 0
-                  ? "text-red-300"
-                  : "text-emerald-300"
+                  ? "text-red-600"
+                  : "text-emerald-600"
               }`}>
                 {budgetData.budget_remaining != null
                   ? `${budgetData.budget_remaining.toLocaleString()} ${budgetData.currency}`
@@ -400,7 +400,7 @@ export default function TripDetailPage() {
           {data.optimization.insights.map((insight) => (
             <p
               key={insight}
-              className="rounded-lg border border-brand-500/20 bg-brand-500/5 px-3 py-2 text-xs text-brand-200/90"
+              className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-700"
             >
               💡 {insight}
             </p>
@@ -408,8 +408,8 @@ export default function TripDetailPage() {
         </section>
       )}
 
-      {/* VVIP Smart Ecosystem Panels */}
-      <div className="space-y-8 pt-6 border-t border-ink-700/60">
+      {/* Smart Ecosystem Panels */}
+      <div className="space-y-8 pt-6 border-t border-slate-200">
         <TripCollaborationPanel tripId={tripId} />
         <TripPollsPanel />
         <TripExpensesPanel />
@@ -417,7 +417,7 @@ export default function TripDetailPage() {
         <TravelJournalPanel />
       </div>
 
-      {showSimulation && <TripSimulationModal onClose={() => setShowSimulation(false)} />}
+      {showSimulation && <TripSimulationModal trip={data} onClose={() => setShowSimulation(false)} />}
     </div>
   );
 }

@@ -9,7 +9,14 @@ interface AuthContextValue {
   user: AuthUser | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, fullName: string, password: string) => Promise<void>;
+  register: (payload: { email: string; full_name: string; password: string }) => Promise<{
+    email: string;
+    email_verified: boolean;
+    dev_otp?: string;
+    message?: string;
+  }>;
+  verifyOtp: (email: string, code: string) => Promise<void>;
+  resendOtp: (email: string) => Promise<{ dev_otp?: string }>;
   logout: () => void;
 }
 
@@ -41,7 +48,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-
   const applyTokens = useCallback(async (tokens: Tokens): Promise<AuthUser> => {
     setTokens(tokens.access, tokens.refresh);
     const data = await api.get<{ user: AuthUser }>("/auth/me/");
@@ -61,15 +67,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const register = useCallback(
-    async (email: string, fullName: string, password: string) => {
-      const data = await api.post<{ user: AuthUser; tokens: Tokens }>(
+    async (payload: { email: string; full_name: string; password: string }) => {
+      return api.post<{ email: string; email_verified: boolean; dev_otp?: string }>(
         "/auth/register/",
-        { email, full_name: fullName, password },
+        payload,
+      );
+    },
+    [],
+  );
+
+  const verifyOtp = useCallback(
+    async (email: string, code: string) => {
+      const data = await api.post<{ user: AuthUser; tokens: Tokens }>(
+        "/auth/verify-otp/",
+        { email, code },
       );
       const me = await applyTokens(data.tokens);
       setUser(me);
     },
     [applyTokens],
+  );
+
+  const resendOtp = useCallback(
+    async (email: string) => {
+      return api.post<{ dev_otp?: string }>("/auth/resend-otp/", { email });
+    },
+    [],
   );
 
   const logout = useCallback(() => {
@@ -79,8 +102,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ user, loading, login, register, logout }),
-    [user, loading, login, register, logout],
+    () => ({ user, loading, login, register, verifyOtp, resendOtp, logout }),
+    [user, loading, login, register, verifyOtp, resendOtp, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

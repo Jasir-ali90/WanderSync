@@ -15,6 +15,7 @@ from mongoengine import (
     EmailField,
     EmbeddedDocument,
     EmbeddedDocumentField,
+    IntField,
     ListField,
     StringField,
 )
@@ -64,7 +65,12 @@ class User(Document):
     password = StringField(required=True)  # always stored hashed
     full_name = StringField(default="", max_length=120)
     is_active = BooleanField(default=True)
-    is_staff = BooleanField(default=False)
+    email_verified = BooleanField(default=False)
+    # Email OTP verification: the code itself is never stored in plain text.
+    otp_hash = StringField(default="", max_length=256)
+    otp_expires_at = DateTimeField()
+    otp_attempts = IntField(default=0)
+    otp_last_sent_at = DateTimeField()
     profile = EmbeddedDocumentField(TravelProfile, default=TravelProfile)
     notifications = EmbeddedDocumentField(
         NotificationPreferences, default=NotificationPreferences
@@ -112,6 +118,7 @@ class User(Document):
             "email": self.email,
             "full_name": self.full_name,
             "is_active": self.is_active,
+            "email_verified": bool(self.email_verified),
             "profile": {field: getattr(self.profile, field) for field in (
                 "avatar_url",
                 "home_city",

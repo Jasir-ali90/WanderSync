@@ -78,12 +78,42 @@ class TripWriteSerializer(serializers.Serializer):
     def update(self, instance, validated_data):
         from decimal import Decimal
 
+        # A currency change must actually convert stored amounts (budget,
+        # itinerary activities, expenses) between the old and new currency —
+        # never simply swap the label on the same number.
+        new_currency = validated_data.get("budget_currency")
+        old_currency = getattr(instance, "budget_currency", "PKR") or "PKR"
+        currency_changed = bool(new_currency and new_currency != old_currency)
+
         for field, value in validated_data.items():
             # MongoEngine FloatField rejects Decimal objects (DRF's
-            # DecimalField output) — coerce to plain float first.
+            # DecimalField output) - coerce to plain float first.
             if isinstance(value, Decimal):
                 value = float(value)
             setattr(instance, field, value)
+
+        if currency_changed:
+            from apps.trips.exchange import convert
+
+            # If a new budget figure was supplied it is already denominated
+            # in the target currency - otherwise convert the stored value so
+            # the amount actually changes instead of just relabeling it.
+            if "budget_amount" not in validated_data and instance.budget_amount:
+                instance.budget_amount = round(
+                    convert(instance.budget_amount, old_currency, new_currency), 2
+                )
+
+            for day in instance.itinerary.days:
+                for activity in day.activities:
+                    activity.cost_estimate = round(
+                        convert(activity.cost_estimate or 0, old_currency, new_currency), 2
+                    )
+
+            for expense in instance.expenses:
+                expense.amount = round(
+                    convert(expense.amount or 0, old_currency, new_currency), 2
+                )
+
         self._apply_dates(instance)
         instance.save()
         return instance

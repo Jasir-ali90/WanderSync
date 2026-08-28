@@ -1,8 +1,15 @@
-import { motion } from "framer-motion";
-import { Bot, Sparkles } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Bot, MapPin } from "lucide-react";
 import type { PlannerMessage } from "@/types/planner";
 
-/** Scrollable conversation transcript with animated 3D AI avatar and voice waves. */
+function tripIdOf(message: PlannerMessage): string | null {
+  const meta = (message.meta ?? {}) as Record<string, unknown>;
+  if (meta.type === "itinerary_generated" && typeof meta.trip_id === "string") {
+    return meta.trip_id;
+  }
+  return null;
+}
+
 export function ChatTranscript({
   messages,
   sending,
@@ -16,11 +23,11 @@ export function ChatTranscript({
     <ol
       ref={listRef}
       aria-label="Conversation"
-      className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4"
+      className="min-h-0 flex-1 space-y-4 overflow-y-auto bg-slate-50/50 p-4 thin-scroll"
     >
       {messages.map((message) => {
         const isAssistant = message.role === "assistant";
-        const engine = isAssistant ? (message.meta as { engine?: string })?.engine : undefined;
+        const tripId = isAssistant ? tripIdOf(message) : null;
 
         return (
           <li
@@ -29,35 +36,35 @@ export function ChatTranscript({
               message.role === "user" ? "justify-end" : "justify-start"
             }`}
           >
-            {/* Assistant 3D Avatar Face */}
             {isAssistant && (
-              <div className="relative grid size-9 shrink-0 place-items-center rounded-xl bg-gradient-to-tr from-brand-600 via-indigo-600 to-cyan-500 p-0.5 shadow-lg shadow-brand-500/20">
-                <div className="flex h-full w-full items-center justify-center rounded-[10px] bg-ink-950">
-                  <Bot className="size-5 text-brand-300" />
-                </div>
-                <span className="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full bg-emerald-400 border border-ink-950 animate-pulse" />
+              <div className="grid size-8 shrink-0 place-items-center rounded-lg bg-blue-600 text-white shadow-sm">
+                <Bot className="size-4" />
               </div>
             )}
 
             <div
               className={
                 message.role === "user"
-                  ? "max-w-[85%] rounded-2xl rounded-tr-sm bg-gradient-to-r from-brand-500 to-indigo-600 px-4 py-3 text-sm leading-relaxed text-slate-950 font-semibold shadow-lg shadow-brand-500/20"
-                  : "max-w-[88%] whitespace-pre-line rounded-2xl rounded-tl-sm border border-brand-500/20 bg-ink-900/90 px-4 py-3 text-sm leading-relaxed text-slate-200 shadow-xl backdrop-blur-md"
+                  ? "max-w-[85%] whitespace-pre-line rounded-2xl rounded-tr-sm bg-blue-600 px-4 py-2.5 text-sm leading-relaxed text-white shadow-sm"
+                  : "max-w-[88%] whitespace-pre-line rounded-2xl rounded-tl-sm border border-slate-200 bg-white px-4 py-2.5 text-sm leading-relaxed text-slate-800 shadow-sm"
               }
             >
               {isAssistant && (
-                <div className="mb-1.5 flex items-center gap-2 text-xs font-bold text-brand-300">
-                  <span>WanderSync AI</span>
-                  {engine && (
-                    <span className="rounded-full bg-brand-500/20 px-2 py-0.5 text-[10px] font-semibold text-brand-200 border border-brand-500/30">
-                      {engine === "openai" ? "✨ Generative Engine" : "🎬 Smart Fallback"}
-                    </span>
-                  )}
+                <div className="mb-1 text-xs font-semibold text-blue-600">
+                  WanderSync AI Assistant
                 </div>
               )}
 
               {message.content}
+
+              {tripId && (
+                <Link
+                  to={`/trips/${tripId}`}
+                  className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
+                >
+                  <MapPin className="size-3.5" /> View Trip Plan
+                </Link>
+              )}
             </div>
           </li>
         );
@@ -65,25 +72,11 @@ export function ChatTranscript({
 
       {sending && (
         <li aria-live="polite" className="flex items-center gap-3">
-          <div className="relative grid size-9 shrink-0 place-items-center rounded-xl bg-gradient-to-tr from-brand-600 via-indigo-600 to-cyan-500 p-0.5 shadow-lg shadow-brand-500/30 animate-pulse">
-            <div className="flex h-full w-full items-center justify-center rounded-[10px] bg-ink-950">
-              <Sparkles className="size-4 text-brand-300 animate-spin" />
-            </div>
+          <div className="grid size-8 shrink-0 animate-pulse place-items-center rounded-lg bg-blue-600 text-white shadow-sm">
+            <Bot className="size-4" />
           </div>
-
-          <div className="flex items-center gap-2 rounded-2xl border border-brand-500/30 bg-ink-900/90 px-4 py-3 backdrop-blur-md">
-            <span className="text-xs font-semibold text-brand-300">AI is thinking</span>
-            {/* Animated Equalizer Wave Bars */}
-            <div className="flex items-center gap-1">
-              {[0, 1, 2, 3].map((bar) => (
-                <motion.span
-                  key={bar}
-                  animate={{ height: ["6px", "16px", "6px"] }}
-                  transition={{ duration: 0.6, repeat: Infinity, delay: bar * 0.15 }}
-                  className="w-1 rounded-full bg-brand-400"
-                />
-              ))}
-            </div>
+          <div className="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-medium text-slate-600 shadow-sm">
+            AI Assistant is thinking...
           </div>
         </li>
       )}

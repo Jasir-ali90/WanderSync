@@ -42,33 +42,33 @@ export function TripExpensesPanel() {
   };
 
   return (
-    <div className="space-y-6 rounded-3xl border border-brand-500/30 bg-ink-900/90 p-6 backdrop-blur-2xl shadow-2xl">
-      <div className="flex items-center justify-between border-b border-ink-700/60 pb-4">
+    <div className="space-y-6 rounded-3xl border border-blue-200 bg-white p-6 backdrop-blur-2xl shadow-2xl">
+      <div className="flex items-center justify-between border-b border-slate-300/60 pb-4">
         <div>
-          <h3 className="flex items-center gap-2 text-lg font-bold text-slate-100">
-            <DollarSign className="size-5 text-brand-400" /> Smart Expense Splitter & Budget Intelligence
+          <h3 className="flex items-center gap-2 text-lg font-bold text-slate-800">
+            <DollarSign className="size-5 text-blue-600" /> Smart Expense Splitter & Budget Intelligence
           </h3>
-          <p className="text-xs text-slate-400">Automated "Who owes who" settlement logic and budget overrun warnings.</p>
+          <p className="text-xs text-slate-500">Automated "Who owes who" settlement logic and budget overrun warnings.</p>
         </div>
       </div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="rounded-2xl border border-brand-500/20 bg-ink-950/80 p-3 text-center">
+        <div className="rounded-2xl border border-blue-200 bg-slate-50/80 p-3 text-center">
           <p className="text-[10px] uppercase font-bold text-slate-500">Total Spent</p>
-          <p className="text-lg font-extrabold text-slate-100">${totalExpense}</p>
+          <p className="text-lg font-extrabold text-slate-800">${totalExpense}</p>
         </div>
-        <div className="rounded-2xl border border-brand-500/20 bg-ink-950/80 p-3 text-center">
+        <div className="rounded-2xl border border-blue-200 bg-slate-50/80 p-3 text-center">
           <p className="text-[10px] uppercase font-bold text-slate-500">Per Person Share</p>
-          <p className="text-lg font-extrabold text-brand-300">${perPersonShare}</p>
+          <p className="text-lg font-extrabold text-blue-700">${perPersonShare}</p>
         </div>
-        <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-center">
-          <p className="text-[10px] uppercase font-bold text-emerald-400">You Paid</p>
-          <p className="text-lg font-extrabold text-emerald-300">$1,200</p>
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-3 text-center">
+          <p className="text-[10px] uppercase font-bold text-emerald-700">You Paid</p>
+          <p className="text-lg font-extrabold text-emerald-600">$1,200</p>
         </div>
-        <div className="rounded-2xl border border-cyan-500/20 bg-cyan-500/10 p-3 text-center">
-          <p className="text-[10px] uppercase font-bold text-cyan-400">You Will Receive</p>
-          <p className="text-lg font-extrabold text-cyan-300">+$650</p>
+        <div className="rounded-2xl border border-blue-200 bg-blue-100 p-3 text-center">
+          <p className="text-[10px] uppercase font-bold text-blue-600">You Will Receive</p>
+          <p className="text-lg font-extrabold text-blue-700">+$650</p>
         </div>
       </div>
 
@@ -81,18 +81,18 @@ export function TripExpensesPanel() {
       )}
 
       {/* Settlement Calculation Engine */}
-      <div className="rounded-2xl border border-brand-500/20 bg-ink-950/80 p-4">
-        <h4 className="flex items-center gap-2 text-xs font-bold text-brand-300 mb-3">
-          <ArrowRightLeft className="size-4 text-brand-400" /> Smart Settlement Breakdown ("Who Owes Who")
+      <div className="rounded-2xl border border-blue-200 bg-slate-50/80 p-4">
+        <h4 className="flex items-center gap-2 text-xs font-bold text-blue-700 mb-3">
+          <ArrowRightLeft className="size-4 text-blue-600" /> Smart Settlement Breakdown ("Who Owes Who")
         </h4>
-        <div className="space-y-2 text-xs text-slate-300">
-          <div className="flex items-center justify-between rounded-xl bg-ink-900/90 p-2.5">
+        <div className="space-y-2 text-xs text-slate-600">
+          <div className="flex items-center justify-between rounded-xl bg-white p-2.5">
             <span><strong>Ali Raza</strong> owes <strong>You</strong></span>
-            <span className="font-bold text-emerald-400">+$250</span>
+            <span className="font-bold text-emerald-700">+$250</span>
           </div>
-          <div className="flex items-center justify-between rounded-xl bg-ink-900/90 p-2.5">
+          <div className="flex items-center justify-between rounded-xl bg-white p-2.5">
             <span><strong>Sara Khan</strong> owes <strong>You</strong></span>
-            <span className="font-bold text-emerald-400">+$400</span>
+            <span className="font-bold text-emerald-700">+$400</span>
           </div>
         </div>
       </div>
@@ -104,19 +104,19 @@ export function TripExpensesPanel() {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Expense title (e.g. Dinner)..."
-          className="h-10 flex-1 min-w-[160px] rounded-xl border border-ink-700 bg-ink-950 px-3 text-xs text-slate-100 placeholder:text-slate-500 focus:border-brand-500 focus:outline-none"
+          className="h-10 flex-1 min-w-[160px] rounded-xl border border-slate-300 bg-slate-50 px-3 text-xs text-slate-800 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none"
         />
         <input
           type="number"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
           placeholder="Amount ($)..."
-          className="h-10 w-28 rounded-xl border border-ink-700 bg-ink-950 px-3 text-xs text-slate-100 placeholder:text-slate-500 focus:border-brand-500 focus:outline-none"
+          className="h-10 w-28 rounded-xl border border-slate-300 bg-slate-50 px-3 text-xs text-slate-800 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none"
         />
         <select
           value={paidBy}
           onChange={(e) => setPaidBy(e.target.value)}
-          className="h-10 rounded-xl border border-ink-700 bg-ink-950 px-3 text-xs text-slate-200 focus:border-brand-500 focus:outline-none"
+          className="h-10 rounded-xl border border-slate-300 bg-slate-50 px-3 text-xs text-slate-700 focus:border-blue-500 focus:outline-none"
         >
           <option value="You">Paid by You</option>
           <option value="Ali">Paid by Ali</option>

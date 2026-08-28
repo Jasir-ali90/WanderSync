@@ -26,7 +26,7 @@ const STYLES = [
 
 /** Ready-made avatar gradients — pick one, no upload needed. */
 const PRESET_AVATARS = [
-  { emoji: "🧳", bg: "from-brand-500 to-indigo-600" },
+  { emoji: "🧳", bg: "from-blue-600 to-indigo-600" },
   { emoji: "🌍", bg: "from-emerald-400 to-teal-600" },
   { emoji: "✈️", bg: "from-sky-400 to-blue-600" },
   { emoji: "🏝️", bg: "from-amber-300 to-orange-500" },
@@ -137,25 +137,25 @@ export default function ProfilePage() {
       <motion.header
         initial={{ opacity: 0, y: -12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-3xl border border-brand-500/20 bg-gradient-to-br from-ink-900/90 via-ink-950/90 to-brand-950/40 p-6 backdrop-blur-xl shadow-2xl"
+        className="relative overflow-hidden rounded-3xl border border-blue-200 bg-gradient-to-br from-slate-700/90 via-ink-950/90 to-brand-950/40 p-6 backdrop-blur-xl shadow-2xl"
       >
-        <div className="absolute -right-12 -top-12 size-36 rounded-full bg-brand-500/10 blur-3xl" />
+        <div className="absolute -right-12 -top-12 size-36 rounded-full bg-blue-700/10 blur-3xl" />
         <div className="relative flex items-center gap-4">
-          <div className="grid size-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-tr from-brand-500 to-indigo-600 text-2xl shadow-lg shadow-brand-500/30">
+          <div className="grid size-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-2xl shadow-lg shadow-brand-500/30">
             <User className="size-7 text-white" />
           </div>
           <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-brand-300 flex items-center gap-1">
+            <p className="text-xs font-bold uppercase tracking-widest text-blue-700 flex items-center gap-1">
               <Sparkles className="size-3.5" /> VVIP Traveller
             </p>
-            <h1 className="font-[family-name:var(--font-display)] text-2xl font-extrabold text-slate-50">Your Profile</h1>
-            <p className="mt-0.5 text-sm text-slate-400">{user?.email}</p>
+            <h1 className="font-[family-name:var(--font-display)] text-2xl font-extrabold text-slate-900">Your Profile</h1>
+            <p className="mt-0.5 text-sm text-slate-500">{user?.email}</p>
           </div>
         </div>
       </motion.header>
 
       {/* Avatar picker */}
-      <Card className="p-6 rounded-3xl border-white/10 bg-ink-900/80 backdrop-blur-xl shadow-2xl">
+      <Card className="p-6 rounded-3xl border-white/10 bg-white/80 backdrop-blur-xl shadow-2xl">
         <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Your picture</h2>
         <div className="mt-4 flex items-center gap-5">
           <div className="relative">
@@ -166,7 +166,7 @@ export default function ProfilePage() {
                 className="size-20 rounded-full border-2 border-brand-500/50 object-cover shadow-[0_0_24px_rgba(134,59,255,.35)]"
               />
             ) : (
-              <div className="grid size-20 place-items-center rounded-full border-2 border-dashed border-ink-600 text-3xl">
+              <div className="grid size-20 place-items-center rounded-full border-2 border-dashed border-slate-300 text-3xl">
                 🧭
               </div>
             )}
@@ -202,7 +202,7 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        <p className="mt-5 mb-2 text-xs font-medium text-slate-400">…or pick a travel vibe:</p>
+        <p className="mt-5 mb-2 text-xs font-medium text-slate-500">…or pick a travel vibe:</p>
         <div role="group" aria-label="Preset avatars" className="flex flex-wrap gap-2.5">
           {PRESET_AVATARS.map((preset) => (
             <button
@@ -228,24 +228,24 @@ export default function ProfilePage() {
         </p>
       </Card>
 
-      <Card className="p-6 rounded-3xl border-white/10 bg-ink-900/80 backdrop-blur-xl shadow-2xl">
+      <Card className="p-6 rounded-3xl border-white/10 bg-white/80 backdrop-blur-xl shadow-2xl">
         <h2 className="mb-4 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500">
-          <Globe2 className="size-4 text-brand-400" /> Travel Settings
+          <Globe2 className="size-4 text-blue-600" /> Travel Settings
         </h2>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
           <div>
-            <label htmlFor="fullName" className="mb-1.5 block text-xs font-medium text-slate-300">Full name</label>
+            <label htmlFor="fullName" className="mb-1.5 block text-xs font-medium text-slate-600">Full name</label>
             <Input id="fullName" invalid={Boolean(errors.fullName)} {...register("fullName")} />
             {errors.fullName && <p className="mt-1 text-xs text-red-400">{errors.fullName.message}</p>}
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label htmlFor="homeCity" className="mb-1.5 block text-xs font-medium text-slate-300">Home city</label>
+              <label htmlFor="homeCity" className="mb-1.5 block text-xs font-medium text-slate-600">Home city</label>
               <Input id="homeCity" placeholder="Lisbon" invalid={Boolean(errors.homeCity)} {...register("homeCity")} />
               {errors.homeCity && <p className="mt-1 text-xs text-red-400">{errors.homeCity.message}</p>}
             </div>
             <div>
-              <label htmlFor="currency" className="mb-1.5 block text-xs font-medium text-slate-300">Preferred currency</label>
+              <label htmlFor="currency" className="mb-1.5 block text-xs font-medium text-slate-600">Preferred currency</label>
               <Input id="currency" maxLength={3} invalid={Boolean(errors.preferredCurrency)} {...register("preferredCurrency")} />
               {errors.preferredCurrency && (
                 <p className="mt-1 text-xs text-red-400">{errors.preferredCurrency.message}</p>
@@ -255,14 +255,14 @@ export default function ProfilePage() {
 
           {user && (
             <fieldset>
-              <legend className="mb-1.5 block text-xs font-medium text-slate-300">Travel style</legend>
-              <div className="flex flex-wrap gap-2 rounded-lg border border-ink-600 bg-ink-900 p-2.5">
+              <legend className="mb-1.5 block text-xs font-medium text-slate-600">Travel style</legend>
+              <div className="flex flex-wrap gap-2 rounded-lg border border-slate-300 bg-white p-2.5">
                 {STYLES.map((style) => (
                   <span
                     key={style}
                     className={
                       user.profile.travel_style === style
-                        ? "rounded-full bg-brand-500/20 px-2.5 py-1 text-xs text-brand-300"
+                        ? "rounded-full bg-blue-700/20 px-2.5 py-1 text-xs text-blue-700"
                         : "rounded-full px-2.5 py-1 text-xs text-slate-500"
                     }
                   >
@@ -277,7 +277,7 @@ export default function ProfilePage() {
           )}
 
           {formError && (
-            <p role="alert" className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-300">
+            <p role="alert" className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-600">
               {formError}
             </p>
           )}
@@ -285,7 +285,7 @@ export default function ProfilePage() {
             <Button type="submit" loading={isSubmitting} className="rounded-full px-8 shadow-lg shadow-brand-500/30">
               <MapPinned className="size-4" /> Save Profile
             </Button>
-            {saved && <span className="text-xs font-semibold text-brand-300 animate-pulse">✓ Saved!</span>}
+            {saved && <span className="text-xs font-semibold text-blue-700 animate-pulse">✓ Saved!</span>}
           </div>
         </form>
       </Card>

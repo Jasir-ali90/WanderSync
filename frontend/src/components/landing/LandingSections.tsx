@@ -24,7 +24,7 @@ const SERVICES = [
     icon: Bot,
     title: "AI Trip Planning",
     text: "Generates tailored multi-day itineraries based on your budget, travel style, and interests in seconds.",
-    color: "from-purple-500/20 to-indigo-500/20 border-purple-500/30",
+    color: "from-blue-500/20 to-indigo-500/20 border-blue-400/30",
   },
   {
     icon: Globe2,
@@ -54,7 +54,7 @@ const SERVICES = [
     icon: Compass,
     title: "Location Discovery",
     text: "Find locations instantly with automated geocoding and visual landmark maps for any stop.",
-    color: "from-violet-500/20 to-fuchsia-500/20 border-violet-500/30",
+    color: "from-purple-500/20 to-indigo-500/20 border-purple-400/30",
   },
   {
     icon: Heart,
@@ -74,7 +74,7 @@ const PERSONALIZED_CATEGORIES = [
   { name: "Trending", emoji: "🔥", desc: "Most sought-after destinations of 2026." },
   { name: "Hidden Gems", emoji: "💎", desc: "Untouched paradises away from crowded tourist lines." },
   { name: "Weekend Getaways", emoji: "⚡", desc: "Quick 2 to 3 day recharges near major hubs." },
-  { name: "Luxury VVIP", emoji: "✨", desc: "5-star resorts, private transfers, and fine dining." },
+  { name: "Luxury", emoji: "✨", desc: "5-star resorts, private transfers, and fine dining." },
   { name: "Budget Smart", emoji: "🏷️", desc: "Maximum experience at minimal cost per day." },
   { name: "Adventure Trails", emoji: "🏔️", desc: "Hiking, mountain passes, and adrenaline thrills." },
   { name: "Family Friendly", emoji: "👨‍👩‍👧", desc: "Safe, engaging, and easy-paced stops for all ages." },
@@ -117,22 +117,28 @@ export function LandingSections() {
 
   return (
     <>
-      {/* Services Section */}
-      <section className="border-t border-ink-700/50 px-4 py-20 sm:px-6">
+      {/* Services Section — bento grid */}
+      <section className="border-t border-slate-200 px-4 py-20 sm:px-6">
         <SectionTitle
-          eyebrow="Our VVIP Services"
+          eyebrow="Our Services"
           title="Designed for modern global travellers"
           subtitle="From instant conversational generation to live weather mapping and budget intelligence."
         />
         <div className="mx-auto mt-12 grid max-w-6xl gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {SERVICES.map((service, index) => (
-            <motion.div key={service.title} {...fadeUp(index * 0.05)}>
-              <Card className={`h-full border bg-gradient-to-b ${service.color} p-5 backdrop-blur-md transition-transform duration-300 hover:-translate-y-1.5`}>
-                <span className="grid size-10 place-items-center rounded-xl bg-brand-500/20 text-brand-300 shadow-inner">
+            <motion.div
+              key={service.title}
+              {...fadeUp(index * 0.05)}
+              whileHover={reduceMotion ? undefined : { y: -6 }}
+              whileTap={reduceMotion ? undefined : { scale: 0.98 }}
+              transition={{ type: "spring", stiffness: 320, damping: 22 }}
+            >
+              <Card className={`h-full border bg-gradient-to-b ${service.color} p-5 shadow-sm transition-shadow duration-300 hover:shadow-lg`}>
+                <span className="grid size-10 place-items-center rounded-xl bg-white/80 text-blue-600 ring-1 ring-slate-200">
                   <service.icon aria-hidden className="size-5" />
                 </span>
-                <h3 className="mt-4 font-bold text-slate-100">{service.title}</h3>
-                <p className="mt-2 text-xs leading-relaxed text-slate-300">{service.text}</p>
+                <h3 className="mt-4 font-bold text-slate-800">{service.title}</h3>
+                <p className="mt-2 text-xs leading-relaxed text-slate-600">{service.text}</p>
               </Card>
             </motion.div>
           ))}
@@ -140,7 +146,7 @@ export function LandingSections() {
       </section>
 
       {/* Personalized Recommendations Section */}
-      <section className="border-t border-ink-700/50 bg-ink-900/40 px-4 py-20 sm:px-6">
+      <section className="border-t border-slate-300/50 bg-white/40 px-4 py-20 sm:px-6">
         <SectionTitle
           eyebrow="Personalized Travel"
           title="Tailored to every travel style"
@@ -155,8 +161,8 @@ export function LandingSections() {
                 onClick={() => setActiveCategory(idx)}
                 className={`flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold transition-all duration-300 ${
                   activeCategory === idx
-                    ? "bg-brand-500 text-ink-950 shadow-lg shadow-brand-500/25 scale-105"
-                    : "bg-ink-800/80 text-slate-300 hover:bg-ink-700/80 border border-ink-700"
+                    ? "bg-blue-600 text-white shadow-md shadow-blue-600/25 scale-105"
+                    : "bg-white text-slate-600 hover:bg-blue-50 border border-slate-200"
                 }`}
               >
                 <span>{cat.emoji}</span>
@@ -170,13 +176,13 @@ export function LandingSections() {
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3 }}
-            className="mt-8 rounded-2xl border border-brand-500/30 bg-gradient-to-r from-ink-900 via-ink-950 to-ink-900 p-8 text-center shadow-xl backdrop-blur-xl"
+            className="mt-8 rounded-2xl border border-blue-100 bg-gradient-to-r from-white via-blue-50/70 to-white p-8 text-center shadow-sm"
           >
             <span className="text-4xl">{PERSONALIZED_CATEGORIES[activeCategory].emoji}</span>
-            <h3 className="mt-2 font-[family-name:var(--font-display)] text-2xl font-bold text-slate-100">
+            <h3 className="mt-2 font-[family-name:var(--font-display)] text-2xl font-bold text-slate-800">
               {PERSONALIZED_CATEGORIES[activeCategory].name}
             </h3>
-            <p className="mt-2 text-sm text-slate-300 max-w-xl mx-auto">
+            <p className="mt-2 text-sm text-slate-600 max-w-xl mx-auto">
               {PERSONALIZED_CATEGORIES[activeCategory].desc}
             </p>
             <div className="mt-6 flex justify-center">
@@ -191,7 +197,7 @@ export function LandingSections() {
       </section>
 
       {/* How WanderSync Works (7 Steps) */}
-      <section className="border-t border-ink-700/50 px-4 py-20 sm:px-6">
+      <section className="border-t border-slate-200 px-4 py-20 sm:px-6">
         <SectionTitle
           eyebrow="Visual Journey"
           title="How WanderSync transforms your trip"
@@ -200,34 +206,36 @@ export function LandingSections() {
         <div className="mx-auto mt-12 grid max-w-6xl gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {SEVEN_STEPS.map((step, idx) => (
             <motion.div key={step.step} {...fadeUp(idx * 0.05)}>
-              <Card className="relative h-full border border-ink-700/60 bg-ink-900/60 p-5 transition-colors hover:border-brand-400/50">
-                <span className="font-[family-name:var(--font-display)] text-3xl font-extrabold text-brand-400">
+              <Card className="relative h-full border-slate-200 bg-white p-5 transition-colors hover:border-blue-300">
+                <span className="font-[family-name:var(--font-display)] text-3xl font-extrabold text-blue-600">
                   {step.step}
                 </span>
-                <h3 className="mt-2 font-bold text-slate-100">{step.title}</h3>
-                <p className="mt-1.5 text-xs leading-relaxed text-slate-400">{step.text}</p>
+                <h3 className="mt-2 font-bold text-slate-800">{step.title}</h3>
+                <p className="mt-1.5 text-xs leading-relaxed text-slate-500">{step.text}</p>
               </Card>
             </motion.div>
           ))}
         </div>
       </section>
 
-      {/* Animated Statistics Counter Section */}
-      <section className="border-t border-ink-700/50 bg-gradient-to-r from-brand-950/40 via-ink-950 to-brand-950/40 px-4 py-16 sm:px-6">
+      {/* Capability Highlights */}
+      <section className="border-t border-slate-200 bg-blue-50/60 px-4 py-16 sm:px-6">
         <div className="mx-auto max-w-6xl">
           <div className="grid grid-cols-2 gap-6 text-center lg:grid-cols-4">
             {[
-              { label: "Trips Planned", value: "15,400+", icon: Route },
-              { label: "Famous Spots Indexed", value: "1,200+", icon: Globe2 },
-              { label: "AI Conversations Saved", value: "48,000+", icon: Bot },
-              { label: "Satisfaction Rating", value: "99.4%", icon: TrendingUp },
+              { label: "AI-Planned Itineraries", value: "Day-by-day", icon: Route },
+              { label: "Destinations Catalog", value: "Global", icon: Globe2 },
+              { label: "Live Weather Aware", value: "Always on", icon: Bot },
+              { label: "Budget Intelligence", value: "PKR first", icon: TrendingUp },
             ].map((stat, idx) => (
               <motion.div key={stat.label} {...fadeUp(idx * 0.08)} className="flex flex-col items-center">
-                <stat.icon className="size-6 text-brand-400 mb-2" />
-                <span className="font-[family-name:var(--font-display)] text-3xl sm:text-4xl font-extrabold text-slate-50">
+                <span className="grid size-12 place-items-center rounded-xl bg-white text-blue-600 shadow-sm ring-1 ring-blue-100">
+                  <stat.icon className="size-5" aria-hidden />
+                </span>
+                <span className="mt-3 font-[family-name:var(--font-display)] text-xl sm:text-2xl font-extrabold text-slate-900">
                   {stat.value}
                 </span>
-                <span className="mt-1 text-xs text-slate-400 font-medium uppercase tracking-wider">{stat.label}</span>
+                <span className="mt-1 text-xs text-slate-500 font-medium uppercase tracking-wider">{stat.label}</span>
               </motion.div>
             ))}
           </div>
@@ -235,7 +243,7 @@ export function LandingSections() {
       </section>
 
       {/* Why Choose WanderSync Section */}
-      <section className="border-t border-ink-700/50 px-4 py-20 sm:px-6">
+      <section className="border-t border-slate-200 px-4 py-20 sm:px-6">
         <SectionTitle
           eyebrow="The WanderSync Difference"
           title="Why discerning travellers choose us"
@@ -244,10 +252,10 @@ export function LandingSections() {
         <div className="mx-auto mt-12 grid max-w-6xl gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {WHY_CHOOSE.map((item, idx) => (
             <motion.div key={item.title} {...fadeUp(idx * 0.06)}>
-              <Card className="h-full border border-ink-700/80 bg-ink-900/80 p-5 backdrop-blur-md hover:border-brand-500/50 transition-colors">
-                <CheckCircle2 className="size-6 text-brand-400 mb-3" />
-                <h3 className="font-bold text-slate-100">{item.title}</h3>
-                <p className="mt-2 text-xs leading-relaxed text-slate-400">{item.text}</p>
+              <Card className="h-full border-slate-200 bg-white p-5 transition-colors hover:border-blue-300 hover:shadow-md">
+                <CheckCircle2 className="size-6 text-blue-600 mb-3" />
+                <h3 className="font-bold text-slate-800">{item.title}</h3>
+                <p className="mt-2 text-xs leading-relaxed text-slate-500">{item.text}</p>
               </Card>
             </motion.div>
           ))}
@@ -255,18 +263,18 @@ export function LandingSections() {
       </section>
 
       {/* Final CTA Banner */}
-      <section className="border-t border-ink-700/50 bg-radial-teal px-4 py-20 sm:px-6 text-center">
-        <div className="mx-auto max-w-3xl rounded-3xl border border-brand-500/30 bg-gradient-to-b from-ink-900/90 to-ink-950/90 p-8 sm:p-12 shadow-2xl backdrop-blur-2xl">
-          <Sparkles className="size-10 text-brand-300 mx-auto animate-pulse" />
-          <h2 className="mt-4 font-[family-name:var(--font-display)] text-3xl sm:text-4xl font-extrabold text-slate-50">
+      <section className="border-t border-slate-200 bg-radial-teal px-4 py-20 sm:px-6 text-center">
+        <div className="mx-auto max-w-3xl rounded-3xl border border-blue-100 bg-white p-8 sm:p-12 shadow-sm">
+          <Sparkles className="size-10 text-blue-600 mx-auto" />
+          <h2 className="mt-4 font-[family-name:var(--font-display)] text-3xl sm:text-4xl font-extrabold text-slate-900">
             Your Next Destination Awaits.
           </h2>
-          <p className="mt-3 text-sm sm:text-base text-slate-300 max-w-xl mx-auto">
-            Experience the VVIP AI travel platform that turns your travel dreams into intelligent, map-ready day-by-day itineraries.
+          <p className="mt-3 text-sm sm:text-base text-slate-600 max-w-xl mx-auto">
+            Experience the AI travel platform that turns your travel dreams into intelligent, map-ready day-by-day itineraries.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-4">
             <Link to="/register">
-              <Button size="lg" className="px-8 shadow-xl shadow-brand-500/25">
+              <Button size="lg" className="px-8">
                 Start Planning Free <ArrowRight aria-hidden className="size-4 ml-1" />
               </Button>
             </Link>

@@ -7,7 +7,8 @@
  *   backend's exception handler).
  */
 
-const BASE = "/api/v1";
+const BASE_HOST = import.meta.env.VITE_API_BASE_URL || "";
+const BASE = `${BASE_HOST}/api/v1`;
 
 export interface Envelope<T> {
   success: boolean;

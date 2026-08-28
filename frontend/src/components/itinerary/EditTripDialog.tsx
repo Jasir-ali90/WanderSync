@@ -5,11 +5,12 @@ import type { FormEvent } from "react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { ApiError, api } from "@/lib/api";
+import { convertCurrency } from "@/lib/currency";
 import type { Trip } from "@/types/api";
 
 const STATUSES = ["draft", "planned", "active", "completed", "cancelled"];
 const BUDGET_LEVELS = ["budget", "moderate", "luxury"];
-const CURRENCIES = ["USD", "EUR", "GBP", "PKR", "AED", "INR"];
+const CURRENCIES = ["USD", "EUR", "GBP", "PKR", "AED", "SAR", "INR"];
 const VISIBILITIES = ["private", "public"];
 
 export function EditTripDialog({
@@ -38,6 +39,22 @@ export function EditTripDialog({
 
   const set = (key: keyof typeof form) => (value: string) =>
     setForm((prev) => ({ ...prev, [key]: value }));
+
+  /** Changing currency also converts the displayed budget so the number
+   *  actually changes — never just the label. */
+  const changeCurrency = (next: string) => {
+    setForm((prev) => {
+      if (prev.budget_amount === "" || next === prev.budget_currency) {
+        return { ...prev, budget_currency: next };
+      }
+      const converted = convertCurrency(
+        Number(prev.budget_amount) || 0,
+        prev.budget_currency,
+        next,
+      );
+      return { ...prev, budget_currency: next, budget_amount: String(Math.round(converted)) };
+    });
+  };
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
@@ -96,9 +113,9 @@ export function EditTripDialog({
       className="fixed inset-0 z-50 grid place-items-center bg-black/70 p-4 backdrop-blur-sm"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl border border-ink-600 bg-ink-900 p-5 shadow-2xl">
+      <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl border border-slate-300 bg-white p-5 shadow-2xl">
         <div className="flex items-center justify-between">
-          <h2 className="font-[family-name:var(--font-display)] text-lg font-bold text-slate-50">
+          <h2 className="font-[family-name:var(--font-display)] text-lg font-bold text-slate-900">
             Edit trip details
           </h2>
           <Button variant="ghost" size="sm" onClick={onClose} aria-label="Close dialog">
@@ -141,7 +158,7 @@ export function EditTripDialog({
           </div>
 
           <div className="grid grid-cols-3 gap-3">
-            <Select label="Currency" value={form.budget_currency} options={CURRENCIES} onChange={set("budget_currency")} />
+            <Select label="Currency" value={form.budget_currency} options={CURRENCIES} onChange={changeCurrency} />
             <Select label="Level" value={form.budget_level} options={BUDGET_LEVELS} onChange={set("budget_level")} />
             <Select label="Status" value={form.status} options={STATUSES} onChange={set("status")} />
           </div>
@@ -154,12 +171,12 @@ export function EditTripDialog({
               value={form.notes}
               onChange={(e) => set("notes")(e.target.value)}
               placeholder="Packing reminders, bookings, anything important…"
-              className="w-full rounded-lg border border-ink-600 bg-ink-900 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-600 focus:border-brand-500 focus:outline-none"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 placeholder:text-slate-600 focus:border-blue-500 focus:outline-none"
             />
           </Field>
 
           {error && (
-            <p role="alert" className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-300">
+            <p role="alert" className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-600">
               {error}
             </p>
           )}
@@ -181,7 +198,7 @@ export function EditTripDialog({
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-xs font-medium text-slate-400">{label}</span>
+      <span className="mb-1 block text-xs font-medium text-slate-500">{label}</span>
       {children}
     </label>
   );
@@ -200,11 +217,11 @@ function Select({
 }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-xs font-medium capitalize text-slate-400">{label}</span>
+      <span className="mb-1 block text-xs font-medium capitalize text-slate-500">{label}</span>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="h-9 w-full rounded-lg border border-ink-600 bg-ink-900 px-2 text-sm capitalize text-slate-100 focus:border-brand-500 focus:outline-none"
+        className="h-9 w-full rounded-lg border border-slate-300 bg-white px-2 text-sm capitalize text-slate-800 focus:border-blue-500 focus:outline-none"
       >
         {options.map((option) => (
           <option key={option} value={option}>{option}</option>

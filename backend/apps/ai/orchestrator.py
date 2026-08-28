@@ -48,9 +48,9 @@ FOLLOW_UPS = {
         "or a group? This helps me price activities and rooms correctly."
     ),
     "budget_amount": (
-        "And what's your total budget for the trip? 💰 A rough number in USD "
-        "(e.g. \"about 1500\") lets me match hotels, meals and experiences to "
-        "real market prices instead of guessing."
+        "And what's your total budget for the trip? 💰 A rough number in PKR "
+        "(e.g. \"about 500,000\") or USD lets me match hotels, meals and "
+        "experiences to real market prices instead of guessing."
     ),
     "start_date": (
         "Finally, when would you like to go? 📅 Even an approximate month works — "

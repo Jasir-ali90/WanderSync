@@ -183,7 +183,7 @@ function SpotCard({ spot }: { spot: Spot }) {
 
         {/* Top Badges */}
         <div className="absolute top-3 inset-x-3 flex items-center justify-between z-10" style={{ transform: "translateZ(35px)" }}>
-          <span className="rounded-full bg-ink-950/70 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-brand-300 backdrop-blur-md border border-brand-500/30 flex items-center gap-1">
+          <span className="rounded-full bg-slate-50/70 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-blue-700 backdrop-blur-md border border-blue-200 flex items-center gap-1">
             <span>{spot.emoji}</span>
             <span>{spot.country || "Spot"}</span>
           </span>
@@ -194,20 +194,20 @@ function SpotCard({ spot }: { spot: Spot }) {
 
         {/* Bottom Caption & Action */}
         <div
-          className="absolute inset-x-3 bottom-3 rounded-2xl border border-white/10 bg-ink-900/85 p-3.5 backdrop-blur-xl shadow-2xl transition-all duration-300 group-hover:border-brand-500/40"
+          className="absolute inset-x-3 bottom-3 rounded-2xl border border-white/10 bg-white/85 p-3.5 backdrop-blur-xl shadow-2xl transition-all duration-300 group-hover:border-brand-500/40"
           style={{ transform: "translateZ(40px)" }}
         >
-          <p className="text-[11px] font-bold uppercase tracking-wider text-cyan-300">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-blue-600">
             {spot.city}
           </p>
           <h3 className="mt-0.5 font-[family-name:var(--font-display)] text-base font-bold leading-tight text-white line-clamp-1">
             {spot.name}
           </h3>
-          <p className="mt-1 line-clamp-2 text-[11px] leading-snug text-slate-300">{spot.description}</p>
+          <p className="mt-1 line-clamp-2 text-[11px] leading-snug text-slate-600">{spot.description}</p>
 
           <a
             href={`/planner?q=${encodeURIComponent(`Plan a trip to ${spot.name} in ${spot.city}`)}`}
-            className="mt-3 flex items-center justify-center gap-1.5 w-full rounded-xl bg-gradient-to-r from-brand-500 to-indigo-600 py-2 text-xs font-bold text-white shadow-lg shadow-brand-500/30 transition-transform hover:scale-102 active:scale-98"
+            className="mt-3 flex items-center justify-center gap-1.5 w-full rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 py-2 text-xs font-bold text-white shadow-lg shadow-brand-500/30 transition-transform hover:scale-102 active:scale-98"
           >
             <span>Plan Trip Here</span>
             <span>→</span>
@@ -283,15 +283,15 @@ export function SeasonsSection() {
                 <span className="inline-block text-4xl transition-transform duration-300 group-hover:scale-125" aria-hidden>
                   {season.emoji}
                 </span>
-                <h3 className="mt-3 font-[family-name:var(--font-display)] text-xl font-bold text-slate-50">
+                <h3 className="mt-3 font-[family-name:var(--font-display)] text-xl font-bold text-slate-900">
                   {season.name}
-                  <span className="ml-2 text-xs font-medium uppercase tracking-wide text-slate-400">{season.months}</span>
+                  <span className="ml-2 text-xs font-medium uppercase tracking-wide text-slate-500">{season.months}</span>
                 </h3>
-                <p className="mt-2 text-sm leading-relaxed text-slate-300">{season.blurb}</p>
-                <ul className="mt-4 space-y-1.5 text-xs text-slate-200">
+                <p className="mt-2 text-sm leading-relaxed text-slate-600">{season.blurb}</p>
+                <ul className="mt-4 space-y-1.5 text-xs text-slate-700">
                   {season.picks.map((pick) => (
                     <li key={pick} className="flex items-center gap-1.5 rounded-md bg-black/20 px-2 py-1">
-                      <span className="text-brand-300">›</span> {pick.trim()}
+                      <span className="text-blue-700">›</span> {pick.trim()}
                     </li>
                   ))}
                 </ul>

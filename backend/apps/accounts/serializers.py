@@ -17,7 +17,17 @@ class RegisterSerializer(serializers.Serializer):
     )
 
     def validate_email(self, value: str) -> str:
+        if value != value.lower():
+            raise serializers.ValidationError(
+                "Email must be in lowercase letters only. Please rewrite it without capital letters.",
+                code="EMAIL_NOT_LOWERCASE",
+            )
         return normalize_email(value)
+
+    def validate_full_name(self, value: str) -> str:
+        from apps.accounts.services import validate_full_name as validate_name
+
+        return validate_name(value)
 
     def validate_password(self, value: str) -> str:
         # Against an empty attribute set so "similarity" checks don't crash.
@@ -56,6 +66,15 @@ class LoginSerializer(serializers.Serializer):
             password=attrs.get("password", ""),
         )
         if user is None:
+            existing = User.objects(email=normalize_email(attrs.get("email", ""))).first()
+            # Accounts awaiting OTP activation are inactive; existing verified
+            # accounts must keep working, so only pending users get the
+            # "verify your email" gate.
+            if existing is not None and not existing.is_active:
+                raise serializers.ValidationError(
+                    "Please verify your email before signing in. Enter the code we emailed you.",
+                    code="EMAIL_UNVERIFIED",
+                )
             raise serializers.ValidationError(
                 "Incorrect email or password.",
                 code="invalid_credentials",

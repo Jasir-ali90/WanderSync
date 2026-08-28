@@ -78,8 +78,8 @@ export default function AdminPage() {
     return (
       <Card className="mx-auto max-w-md p-8 text-center">
         <ShieldCheck aria-hidden className="mx-auto size-10 text-red-400" />
-        <h1 className="mt-3 font-semibold text-slate-100">Admin access required</h1>
-        <p className="mt-1 text-sm text-slate-400">Your account doesn't have admin rights.</p>
+        <h1 className="mt-3 font-semibold text-slate-800">Admin access required</h1>
+        <p className="mt-1 text-sm text-slate-500">Your account doesn't have admin rights.</p>
         <Link to="/dashboard" className="mt-4 inline-block text-sm text-brand-400">← Back to dashboard</Link>
       </Card>
     );
@@ -89,7 +89,7 @@ export default function AdminPage() {
     <div className="space-y-6">
       <header className="flex items-center justify-between">
         <div>
-          <h1 className="font-[family-name:var(--font-display)] text-2xl font-bold text-slate-50">
+          <h1 className="font-[family-name:var(--font-display)] text-2xl font-bold text-slate-900">
             Admin Console
           </h1>
           <p className="mt-0.5 flex items-center gap-2 text-xs text-slate-500">
@@ -100,8 +100,8 @@ export default function AdminPage() {
         <span
           className={
             stats.data?.ai_enabled
-              ? "rounded-full bg-brand-500/15 px-3 py-1 text-xs font-medium text-brand-300"
-              : "rounded-full bg-slate-500/15 px-3 py-1 text-xs font-medium text-slate-400"
+              ? "rounded-full bg-blue-700/15 px-3 py-1 text-xs font-medium text-blue-700"
+              : "rounded-full bg-slate-500/15 px-3 py-1 text-xs font-medium text-slate-500"
           }
         >
           AI key: {stats.data?.ai_enabled ? "loaded ✅" : "not set (demo mode)"}
@@ -119,7 +119,7 @@ export default function AdminPage() {
         ].map((card) => (
           <Card key={card.label} className="p-4 transition-transform hover:-translate-y-0.5">
             <card.icon aria-hidden className="size-5 text-brand-400" />
-            <p className="mt-2 font-[family-name:var(--font-display)] text-2xl font-bold text-slate-50">
+            <p className="mt-2 font-[family-name:var(--font-display)] text-2xl font-bold text-slate-900">
               {card.value ?? "—"}
             </p>
             <p className="text-[11px] uppercase tracking-wide text-slate-500">{card.label}</p>
@@ -144,7 +144,7 @@ export default function AdminPage() {
         <Card className="mt-2 overflow-x-auto">
           <table className="w-full min-w-[640px] text-left text-sm">
             <thead>
-              <tr className="border-b border-ink-700 text-xs uppercase tracking-wide text-slate-500">
+              <tr className="border-b border-slate-300 text-xs uppercase tracking-wide text-slate-500">
                 <th className="px-4 py-2.5 font-medium">Email</th>
                 <th className="px-4 py-2.5 font-medium">Name</th>
                 <th className="px-4 py-2.5 font-medium">Trips</th>
@@ -152,20 +152,20 @@ export default function AdminPage() {
                 <th className="px-4 py-2.5 font-medium text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-ink-700/70">
+            <tbody className="divide-y divide-slate-200/70">
               {(users.data?.results ?? []).map((row) => (
-                <tr key={row.id} className="hover:bg-ink-800/50">
-                  <td className="px-4 py-2.5 text-slate-200">{row.email}</td>
-                  <td className="px-4 py-2.5 text-slate-400">{row.full_name || "—"}</td>
-                  <td className="px-4 py-2.5 text-slate-400">{row.trip_count}</td>
+                <tr key={row.id} className="hover:bg-slate-100/50">
+                  <td className="px-4 py-2.5 text-slate-700">{row.email}</td>
+                  <td className="px-4 py-2.5 text-slate-500">{row.full_name || "—"}</td>
+                  <td className="px-4 py-2.5 text-slate-500">{row.trip_count}</td>
                   <td className="px-4 py-2.5">
                     {row.is_staff ? (
-                      <span className="rounded-full bg-brand-500/15 px-2 py-0.5 text-xs text-brand-300">staff</span>
+                      <span className="rounded-full bg-blue-700/15 px-2 py-0.5 text-xs text-blue-700">staff</span>
                     ) : (
-                      <span className="rounded-full bg-ink-700 px-2 py-0.5 text-xs text-slate-400">user</span>
+                      <span className="rounded-full bg-slate-200 px-2 py-0.5 text-xs text-slate-500">user</span>
                     )}
                     {!row.is_active && (
-                      <span className="ml-1 rounded-full bg-red-500/15 px-2 py-0.5 text-xs text-red-300">disabled</span>
+                      <span className="ml-1 rounded-full bg-red-500/15 px-2 py-0.5 text-xs text-red-600">disabled</span>
                     )}
                   </td>
                   <td className="px-4 py-2.5">
@@ -192,7 +192,7 @@ export default function AdminPage() {
                         size="sm"
                         variant="ghost"
                         title="Delete user"
-                        className="text-slate-500 hover:text-red-300"
+                        className="text-slate-500 hover:text-red-600"
                         onClick={async () => {
                           if (!window.confirm(`Delete ${row.email} and ALL their data?`)) return;
                           setActionError(null);
@@ -228,13 +228,13 @@ export default function AdminPage() {
                 const max = stats.data!.top_destinations[0].trips || 1;
                 return (
                   <li key={entry.destination}>
-                    <div className="flex justify-between text-xs text-slate-300">
+                    <div className="flex justify-between text-xs text-slate-600">
                       <span>{entry.destination}</span>
                       <span>{entry.trips}</span>
                     </div>
-                    <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-ink-700">
+                    <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-slate-200">
                       <div
-                        className="h-full rounded-full bg-gradient-to-r from-brand-600 to-brand-400"
+                        className="h-full rounded-full bg-gradient-to-r from-blue-600 to-blue-400"
                         style={{ width: `${(entry.trips / max) * 100}%` }}
                       />
                     </div>
@@ -262,7 +262,7 @@ export default function AdminPage() {
         <Card className="mt-2 overflow-x-auto">
           <table className="w-full min-w-[640px] text-left text-sm">
             <thead>
-              <tr className="border-b border-ink-700 text-xs uppercase tracking-wide text-slate-500">
+              <tr className="border-b border-slate-300 text-xs uppercase tracking-wide text-slate-500">
                 <th className="px-4 py-2.5 font-medium">Title</th>
                 <th className="px-4 py-2.5 font-medium">Destination</th>
                 <th className="px-4 py-2.5 font-medium">Owner</th>
@@ -270,21 +270,21 @@ export default function AdminPage() {
                 <th className="px-4 py-2.5 font-medium text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-ink-700/70">
+            <tbody className="divide-y divide-slate-200/70">
               {(trips.data?.results ?? []).map((row) => (
-                <tr key={row.id} className="hover:bg-ink-800/50">
-                  <td className="px-4 py-2.5 text-slate-200">
-                    <Link to={`/trips/${row.id}`} className="hover:text-brand-300">{row.title}</Link>
+                <tr key={row.id} className="hover:bg-slate-100/50">
+                  <td className="px-4 py-2.5 text-slate-700">
+                    <Link to={`/trips/${row.id}`} className="hover:text-blue-700">{row.title}</Link>
                   </td>
-                  <td className="px-4 py-2.5 text-slate-400">{row.destination}</td>
-                  <td className="px-4 py-2.5 text-slate-400">{row.owner_email}</td>
-                  <td className="px-4 py-2.5 text-slate-400">{row.status}</td>
+                  <td className="px-4 py-2.5 text-slate-500">{row.destination}</td>
+                  <td className="px-4 py-2.5 text-slate-500">{row.owner_email}</td>
+                  <td className="px-4 py-2.5 text-slate-500">{row.status}</td>
                   <td className="px-4 py-2.5 text-right">
                     <Button
                       size="sm"
                       variant="ghost"
                       title="Delete trip"
-                      className="text-slate-500 hover:text-red-300"
+                      className="text-slate-500 hover:text-red-600"
                       onClick={async () => {
                         if (!window.confirm(`Delete trip "${row.title}"?`)) return;
                         setActionError(null);
@@ -307,7 +307,7 @@ export default function AdminPage() {
       </section>
 
       {actionError && (
-        <p role="alert" className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-300">
+        <p role="alert" className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-600">
           {actionError}
         </p>
       )}

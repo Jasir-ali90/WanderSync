@@ -11,11 +11,15 @@ from apps.accounts.views import (
     MeView,
     MongoTokenRefreshView,
     RegisterView,
+    ResendOtpView,
     ResetPasswordView,
+    VerifyOtpView,
 )
 
 urlpatterns = [
     path("register/", RegisterView.as_view(), name="auth-register"),
+    path("verify-otp/", VerifyOtpView.as_view(), name="auth-verify-otp"),
+    path("resend-otp/", ResendOtpView.as_view(), name="auth-resend-otp"),
     path("login/", LoginView.as_view(), name="auth-login"),
     path("logout/", LogoutView.as_view(), name="auth-logout"),
     path("refresh/", MongoTokenRefreshView.as_view(), name="auth-refresh"),
@@ -26,4 +30,3 @@ urlpatterns = [
     path("password/reset/", ResetPasswordView.as_view(), name="auth-reset"),
     path("account/", DeleteAccountView.as_view(), name="auth-delete"),
 ]
-

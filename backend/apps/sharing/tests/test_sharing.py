@@ -33,7 +33,17 @@ class ShareBase:
             content_type="application/json",
         )
         assert response.status_code == 201, response.content
-        return response.json()["data"]["tokens"]["access"]
+        # Simulate the required email OTP verification before signing in.
+        user = User.objects(email=email).first()
+        if user is not None:
+            user.modify(email_verified=True, is_active=True, otp_hash="")
+        login = self.client.post(
+            "/api/v1/auth/login/",
+            {"email": email, "password": PASSWORD},
+            content_type="application/json",
+        )
+        assert login.status_code == 200, login.content
+        return login.json()["data"]["tokens"]["access"]
 
     def _make_trip(self, notes="Secret planning notes."):
         self.client.defaults["HTTP_AUTHORIZATION"] = f"Bearer {self.token}"

@@ -1,0 +1,1 @@
+"""Django init for the trips management package."""

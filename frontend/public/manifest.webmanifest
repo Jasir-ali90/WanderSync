@@ -1,0 +1,17 @@
+{
+  "name": "WanderSync — AI Travel Companion",
+  "short_name": "WanderSync",
+  "description": "From Dream to Itinerary. AI-powered travel planning.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0812",
+  "theme_color": "#d4af5e",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

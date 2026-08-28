@@ -1,6 +1,6 @@
 """Travel data API endpoints (places, weather, hotels, events)."""
 from drf_spectacular.utils import extend_schema
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 
 from apps.common.responses import error_response, success_response
@@ -59,12 +59,25 @@ class WeatherView(APIView):
             )
         if not (-90 <= lat <= 90 and -180 <= lon <= 180):
             return error_response("Coordinates out of range.", code="VALIDATION_ERROR")
+        # Optional arrival date so the forecast matches *when* you'll be there.
+        start_param = (request.query_params.get("start") or "").strip()
+        arrival = None
+        if start_param:
+            from datetime import date as date_cls
+
+            try:
+                arrival = date_cls.fromisoformat(start_param)
+            except ValueError:
+                return error_response(
+                    "'start' must be an ISO date like 2026-09-12.",
+                    code="VALIDATION_ERROR",
+                )
         try:
             days = int(request.query_params.get("days", 3))
         except ValueError:
             days = 3
         days = max(1, min(days, 7))
-        result = services.get_weather(lat, lon, days)
+        result = services.get_weather(lat, lon, days, start=arrival)
         if result is None:
             return error_response(
                 "Weather is temporarily unavailable. Please retry shortly.",
@@ -93,7 +106,9 @@ class HotelSearchView(APIView):
 class SpotCatalogView(APIView):
     """Curated Famous Spots catalog (countries -> iconic places)."""
 
-    permission_classes = [IsAuthenticated]
+    # Public: the catalog is static, hand-curated marketing content — the
+    # landing-page carousel shows it to visitors before login.
+    permission_classes = [AllowAny]
 
     @extend_schema(tags=["travel"])
     def get(self, request):

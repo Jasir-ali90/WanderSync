@@ -216,13 +216,19 @@ CSRF_TRUSTED_ORIGINS = env_list(
 # ------------------------------------------------------------------
 MONGODB_URI = env("MONGODB_URI", "mongodb://localhost:27017/wandersync")
 MONGODB_DB = env("MONGODB_DB", "wandersync")
-MONGODB_CONNECT_TIMEOUT_MS = env_int("MONGODB_CONNECT_TIMEOUT_MS", 3000)
+# Generous default: a remote Atlas handshake can take several seconds on slow
+# links; bumping from the previous 3s reduces flaky "SSL handshake failed" on
+# otherwise-fine connections. Tune in .env if needed.
+MONGODB_CONNECT_TIMEOUT_MS = env_int("MONGODB_CONNECT_TIMEOUT_MS", 10000)
 
 # ------------------------------------------------------------------
 # External integrations (server-side only — never exposed to the client)
 # ------------------------------------------------------------------
 OPENAI_API_KEY = env("OPENAI_API_KEY", "")
 OPENAI_MODEL = env("OPENAI_MODEL", "gpt-4o-mini")
+# Optional: any OpenAI-compatible endpoint (Groq, OpenRouter, Together,
+# DeepSeek, Ollama...). Example: https://api.groq.com/openai/v1
+OPENAI_BASE_URL = env("OPENAI_BASE_URL", "")
 
 MAPS_API_KEY = env("MAPS_API_KEY", "")
 WEATHER_API_KEY = env("WEATHER_API_KEY", "")

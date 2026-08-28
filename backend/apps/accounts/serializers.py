@@ -69,7 +69,9 @@ class ProfileUpdateSerializer(serializers.Serializer):
 
     full_name = serializers.CharField(max_length=120, required=False, allow_blank=True)
 
-    avatar_url = serializers.URLField(required=False, allow_blank=True, max_length=500)
+    # CharField (not URLField) so uploaded avatars can be stored as small
+    # canvas-resized data URLs as well as remote URLs.
+    avatar_url = serializers.CharField(required=False, allow_blank=True, max_length=150_000)
     home_city = serializers.CharField(required=False, allow_blank=True, max_length=120)
     preferred_currency = serializers.CharField(required=False, min_length=3, max_length=3)
     travel_style = serializers.ChoiceField(

@@ -1,34 +1,74 @@
 import { useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft,
   CalendarPlus,
   FileDown,
+  Pencil,
   Plus,
   Share2,
+  Trash2,
+  Wallet,
   X,
 } from "lucide-react";
 
 import { ActivityForm } from "@/components/itinerary/ActivityForm";
+import { EditTripDialog } from "@/components/itinerary/EditTripDialog";
+import { TripCollaborationPanel } from "@/components/itinerary/TripCollaborationPanel";
+import { TripExpensesPanel } from "@/components/itinerary/TripExpensesPanel";
+import { TripMap } from "@/components/itinerary/TripMap";
+import { TripPollsPanel } from "@/components/itinerary/TripPollsPanel";
+import { WeatherPanel } from "@/components/itinerary/WeatherPanel";
+import { TravelJournalPanel } from "@/components/journal/TravelJournalPanel";
+import { SmartPackingPanel } from "@/components/itinerary/SmartPackingPanel";
+import { TripSimulationModal } from "@/components/simulation/TripSimulationModal";
 import { Button } from "@/components/ui/Button";
 import { Card, Spinner } from "@/components/ui/Card";
 import { api } from "@/lib/api";
+import { cn } from "@/lib/utils";
 import type { Trip } from "@/types/api";
 
 const MOODS = ["relaxed", "balanced", "packed", "budget", "premium", "family"];
 
+interface BudgetBreakdown {
+  categories: Record<string, number>;
+  total_estimate: number;
+  currency: string;
+  daily_average: number;
+  declared_budget: number | null;
+  budget_remaining: number | null;
+  is_estimate: boolean;
+}
+
+const CATEGORY_LABELS: Record<string, string> = {
+  accommodation: "Accommodation",
+  transportation: "Transport",
+  activities: "Activities",
+  food: "Food",
+  miscellaneous: "Misc",
+};
+
 export default function TripDetailPage() {
   const { tripId = "" } = useParams();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [activeDay, setActiveDay] = useState(1);
+  const [activeDay, setActiveDay] = useState<number | "all">(1);
   const [showAdd, setShowAdd] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
+  const [showSimulation, setShowSimulation] = useState(false);
   const [shareInfo, setShareInfo] = useState<{ token: string; url: string } | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
   const trip = useQuery({
     queryKey: ["trip", tripId],
     queryFn: () => api.get<{ trip: Trip }>(`/trips/${tripId}/`),
+  });
+
+  const budget = useQuery({
+    queryKey: ["trip", tripId, "budget"],
+    queryFn: () => api.get<{ budget: BudgetBreakdown }>(`/trips/${tripId}/budget/`),
+    enabled: Boolean(trip.data),
   });
 
   const invalidate = () => {
@@ -64,6 +104,22 @@ export default function TripDetailPage() {
     onError: () => setActionError("Couldn't create a share link."),
   });
 
+  // Resolve missing activity coordinates so the map & weather work everywhere.
+  const geocode = useMutation({
+    mutationFn: () => api.post(`/trips/${tripId}/geocode/`),
+    onSuccess: () => invalidate(),
+    onError: () => setActionError("Couldn't resolve locations — try again shortly."),
+  });
+
+  const deleteTrip = useMutation({
+    mutationFn: () => api.delete(`/trips/${tripId}/`),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["trips"] });
+      void navigate("/trips");
+    },
+    onError: () => setActionError("Couldn't delete the trip. Try again."),
+  });
+
   if (trip.isLoading) return <Spinner label="Loading itinerary…" />;
   if (trip.isError || !trip.data) {
     return (
@@ -77,6 +133,7 @@ export default function TripDetailPage() {
   const data = trip.data.trip;
   const day = data.itinerary.days.find((d) => d.day_number === activeDay) ?? data.itinerary.days[0];
   const currency = data.budget.currency;
+  const budgetData = budget.data?.budget;
 
   const exportFile = (kind: "pdf" | "ics") => {
     const slug = data.destination.toLowerCase().replace(/\s+/g, "-");
@@ -98,6 +155,12 @@ export default function TripDetailPage() {
             <h1 className="mt-1 font-[family-name:var(--font-display)] text-2xl font-bold text-slate-50">{data.title}</h1>
           </div>
           <div className="flex flex-wrap gap-2">
+            <Button size="sm" onClick={() => setShowSimulation(true)} className="rounded-xl font-bold bg-gradient-to-r from-brand-500 to-indigo-600 shadow-lg shadow-brand-500/30">
+              ✨ Experience My Trip
+            </Button>
+            <Button size="sm" variant="secondary" onClick={() => setShowEdit(true)}>
+              <Pencil aria-hidden className="size-3.5" /> Edit details
+            </Button>
             <Button size="sm" variant="secondary" onClick={() => exportFile("pdf")}>
               <FileDown aria-hidden className="size-3.5" /> PDF
             </Button>
@@ -106,6 +169,18 @@ export default function TripDetailPage() {
             </Button>
             <Button size="sm" variant="secondary" onClick={() => void createShare.mutate()} loading={createShare.isPending}>
               <Share2 aria-hidden className="size-3.5" /> Share
+            </Button>
+            <Button
+              size="sm"
+              variant="danger"
+              onClick={() => {
+                if (window.confirm(`Delete "${data.title}" permanently? This can't be undone.`)) {
+                  void deleteTrip.mutate();
+                }
+              }}
+              loading={deleteTrip.isPending}
+            >
+              <Trash2 aria-hidden className="size-3.5" /> Delete trip
             </Button>
           </div>
         </div>
@@ -143,11 +218,12 @@ export default function TripDetailPage() {
             role="tab"
             aria-selected={d.day_number === day?.day_number}
             onClick={() => setActiveDay(d.day_number)}
-            className={
+            className={cn(
+              "rounded-lg px-3.5 py-1.5 text-xs font-medium transition-colors",
               d.day_number === day?.day_number
-                ? "rounded-lg bg-brand-500 px-3.5 py-1.5 text-xs font-medium text-ink-950"
-                : "rounded-lg bg-ink-800 px-3.5 py-1.5 text-xs text-slate-400 hover:text-slate-200"
-            }
+                ? "bg-brand-500 text-ink-950"
+                : "bg-ink-800 text-slate-400 hover:text-slate-200",
+            )}
           >
             Day {d.day_number}
           </button>
@@ -240,6 +316,85 @@ export default function TripDetailPage() {
         </Card>
       )}
 
+      <TripMap
+        days={data.itinerary.days}
+        activeDay={activeDay === "all" ? null : activeDay}
+        onFillLocations={() => geocode.mutate()}
+        filling={geocode.isPending}
+      />
+
+      {/* Live conditions + arrival-aligned forecast for the destination */}
+      <WeatherPanel
+        destination={data.destination}
+        startDate={data.start_date}
+        durationDays={data.duration_days}
+      />
+
+      {showEdit && (
+        <EditTripDialog trip={data} onClose={() => setShowEdit(false)} onSaved={invalidate} />
+      )}
+
+      {budgetData && (
+        <Card className="p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="flex items-center gap-2 font-medium text-slate-100">
+              <Wallet aria-hidden className="size-4 text-brand-400" /> Budget breakdown
+            </h2>
+            <p className="text-[11px] text-slate-500">Estimated values — not guaranteed prices.</p>
+          </div>
+          <dl className="mt-3 space-y-2.5">
+            {Object.entries(budgetData.categories).map(([category, amount]) => {
+              const share = budgetData.total_estimate > 0 ? (amount / budgetData.total_estimate) * 100 : 0;
+              return (
+                <div key={category}>
+                  <div className="flex items-baseline justify-between text-xs">
+                    <dt className="text-slate-300">{CATEGORY_LABELS[category] ?? category}</dt>
+                    <dd className="tabular-nums text-slate-400">
+                      {amount.toLocaleString()} {budgetData.currency}
+                    </dd>
+                  </div>
+                  <div
+                    role="img"
+                    aria-label={`${CATEGORY_LABELS[category] ?? category}: ${share.toFixed(0)} percent of estimated cost`}
+                    className="mt-1 h-1.5 overflow-hidden rounded-full bg-ink-700"
+                  >
+                    <div className="h-full rounded-full bg-gradient-to-r from-brand-600 to-brand-400" style={{ width: `${Math.max(share, 1)}%` }} />
+                  </div>
+                </div>
+              );
+            })}
+          </dl>
+          <div className="mt-4 grid grid-cols-3 gap-2 border-t border-ink-700 pt-3 text-center text-xs">
+            <div>
+              <p className="text-[10px] uppercase tracking-wide text-slate-500">Daily avg</p>
+              <p className="font-medium text-slate-100 tabular-nums">
+                {budgetData.daily_average.toLocaleString()} {budgetData.currency}
+              </p>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-wide text-slate-500">Declared budget</p>
+              <p className="font-medium text-slate-100 tabular-nums">
+                {budgetData.declared_budget != null
+                  ? `${budgetData.declared_budget.toLocaleString()} ${budgetData.currency}`
+                  : "—"}
+              </p>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-wide text-slate-500">Remaining</p>
+              <p className={`font-medium tabular-nums ${
+                budgetData.budget_remaining != null && budgetData.budget_remaining < 0
+                  ? "text-red-300"
+                  : "text-emerald-300"
+              }`}>
+                {budgetData.budget_remaining != null
+                  ? `${budgetData.budget_remaining.toLocaleString()} ${budgetData.currency}`
+                  : "—"}
+              </p>
+            </div>
+          </div>
+        </Card>
+      )}
+
       {data.optimization.insights.length > 0 && (
         <section aria-label="Optimization insights" className="space-y-1.5">
           {data.optimization.insights.map((insight) => (
@@ -252,6 +407,17 @@ export default function TripDetailPage() {
           ))}
         </section>
       )}
+
+      {/* VVIP Smart Ecosystem Panels */}
+      <div className="space-y-8 pt-6 border-t border-ink-700/60">
+        <TripCollaborationPanel tripId={tripId} />
+        <TripPollsPanel />
+        <TripExpensesPanel />
+        <SmartPackingPanel />
+        <TravelJournalPanel />
+      </div>
+
+      {showSimulation && <TripSimulationModal onClose={() => setShowSimulation(false)} />}
     </div>
   );
 }

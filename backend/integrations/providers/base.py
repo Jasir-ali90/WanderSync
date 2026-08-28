@@ -18,8 +18,11 @@ class TravelProvider(ABC):
         """Details for one place previously returned by search_places."""
 
     @abstractmethod
-    def get_weather(self, lat: float, lon: float, days: int = 3) -> dict | None:
-        """Current conditions + daily forecast for a coordinate."""
+    def get_weather(self, lat: float, lon: float, days: int = 3, start=None) -> dict | None:
+        """Current conditions + daily forecast for a coordinate.
+
+        ``start`` optionally pins the forecast window to an arrival date.
+        """
 
     @abstractmethod
     def search_hotels(self, city: str, limit: int = 5) -> list[dict] | None:

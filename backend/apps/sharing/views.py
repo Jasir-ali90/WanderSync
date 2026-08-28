@@ -43,6 +43,9 @@ class ShareLinkView(APIView):
             link.save()
             trip.modify(visibility="public")
         logger.info("Share link issued for trip %s", trip.id)
+        from apps.notifications.service import notify_share_created
+
+        notify_share_created(request.user.public_id, str(trip.id))
         return success_response(
             {"token": link.token, "url": f"/shared/{link.token}", "views": link.views},
             message="Share link ready.",

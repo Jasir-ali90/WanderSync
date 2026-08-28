@@ -7,6 +7,7 @@ and editing all share one shape.
 from bson import ObjectId
 from django.utils import timezone
 from mongoengine import (
+    BooleanField,
     DateField,
     DateTimeField,
     DictField,
@@ -79,6 +80,112 @@ class ItineraryDay(EmbeddedDocument):
         }
 
 
+class TripCollaborator(EmbeddedDocument):
+    user_public_id = StringField(required=True, max_length=32)
+    email = StringField(required=True, max_length=255)
+    name = StringField(default="", max_length=255)
+    role = StringField(default="editor", choices=("owner", "editor", "viewer"), max_length=16)
+    joined_at = DateTimeField()
+
+    def to_api_dict(self) -> dict:
+        return {
+            "user_public_id": self.user_public_id,
+            "email": self.email,
+            "name": self.name,
+            "role": self.role,
+            "joined_at": self.joined_at.isoformat() if self.joined_at else None,
+        }
+
+class PollOption(EmbeddedDocument):
+    option_id = StringField(required=True)
+    text = StringField(required=True, max_length=200)
+    voters = ListField(StringField(), default=list) # list of user_public_ids
+
+class TripPoll(EmbeddedDocument):
+    poll_id = StringField(required=True)
+    created_by = StringField(required=True)
+    question = StringField(required=True, max_length=300)
+    options = ListField(EmbeddedDocumentField(PollOption), default=list)
+    created_at = DateTimeField()
+
+    def to_api_dict(self) -> dict:
+        return {
+            "id": self.poll_id,
+            "created_by": self.created_by,
+            "question": self.question,
+            "options": [
+                {"id": o.option_id, "text": o.text, "voters": o.voters, "votes_count": len(o.voters)}
+                for o in self.options
+            ],
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }
+
+class TripExpense(EmbeddedDocument):
+    expense_id = StringField(required=True)
+    title = StringField(required=True, max_length=200)
+    amount = FloatField(required=True, min_value=0)
+    paid_by = StringField(required=True)
+    category = StringField(default="General", max_length=50)
+    shared_with = ListField(StringField(), default=list) # user_public_ids
+    created_at = DateTimeField()
+
+    def to_api_dict(self) -> dict:
+        return {
+            "id": self.expense_id,
+            "title": self.title,
+            "amount": self.amount,
+            "paid_by": self.paid_by,
+            "category": self.category,
+            "shared_with": self.shared_with,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }
+
+class PackingItem(EmbeddedDocument):
+    item_id = StringField(required=True)
+    title = StringField(required=True, max_length=200)
+    category = StringField(default="Essentials", max_length=50)
+    packed = BooleanField(default=False)
+
+    def to_api_dict(self) -> dict:
+        return {
+            "id": self.item_id,
+            "title": self.title,
+            "category": self.category,
+            "packed": self.packed,
+        }
+
+class JournalEntry(EmbeddedDocument):
+    entry_id = StringField(required=True)
+    day_number = IntField(default=1)
+    title = StringField(required=True, max_length=200)
+    content = StringField(default="", max_length=5000)
+    photo_url = StringField(default="", max_length=500)
+    created_at = DateTimeField()
+
+    def to_api_dict(self) -> dict:
+        return {
+            "id": self.entry_id,
+            "day_number": self.day_number,
+            "title": self.title,
+            "content": self.content,
+            "photo_url": self.photo_url,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }
+
+class ActivityLog(EmbeddedDocument):
+    log_id = StringField(required=True)
+    user_public_id = StringField(required=True)
+    action = StringField(required=True, max_length=300)
+    created_at = DateTimeField()
+
+    def to_api_dict(self) -> dict:
+        return {
+            "id": self.log_id,
+            "user_public_id": self.user_public_id,
+            "action": self.action,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }
+
 class Itinerary(EmbeddedDocument):
     days = ListField(EmbeddedDocumentField(ItineraryDay), default=list)
 
@@ -113,6 +220,12 @@ class Trip(Document):
     optimization_score = IntField(min_value=0, max_value=100, null=True)
     score_breakdown = DictField(default=dict)
     insights = ListField(StringField(max_length=300), default=list)
+    collaborators = ListField(EmbeddedDocumentField(TripCollaborator), default=list)
+    polls = ListField(EmbeddedDocumentField(TripPoll), default=list)
+    expenses = ListField(EmbeddedDocumentField(TripExpense), default=list)
+    packing_items = ListField(EmbeddedDocumentField(PackingItem), default=list)
+    journal_entries = ListField(EmbeddedDocumentField(JournalEntry), default=list)
+    activity_logs = ListField(EmbeddedDocumentField(ActivityLog), default=list)
     created_at = DateTimeField()
     updated_at = DateTimeField()
 
@@ -165,8 +278,13 @@ class Trip(Document):
                 "breakdown": self.score_breakdown or {},
                 "insights": self.insights or [],
             },
+            "collaborators": [c.to_api_dict() for c in self.collaborators],
+            "polls": [p.to_api_dict() for p in self.polls],
+            "expenses": [e.to_api_dict() for e in self.expenses],
+            "packing_items": [pi.to_api_dict() for pi in self.packing_items],
+            "journal_entries": [j.to_api_dict() for j in self.journal_entries],
+            "activity_logs": [al.to_api_dict() for al in self.activity_logs],
             "created_at": self.created_at.isoformat() if self.created_at else None,
-
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
 

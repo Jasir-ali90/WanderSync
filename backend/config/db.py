@@ -9,6 +9,8 @@ import logging
 from django.conf import settings
 from mongoengine import connect, get_connection
 
+import certifi
+
 logger = logging.getLogger(__name__)
 
 ALIAS = "default"
@@ -29,6 +31,8 @@ def ensure_connection():
             alias=ALIAS,
             serverSelectionTimeoutMS=settings.MONGODB_CONNECT_TIMEOUT_MS,
             uuidRepresentation="standard",
+            tlsCAFile=certifi.where(),
+            tlsDisableOCSPEndpointCheck=True,
         )
 
         client = get_connection(ALIAS)

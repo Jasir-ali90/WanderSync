@@ -78,6 +78,59 @@ def wandersync_exception_handler(exc, context):
         return _error_response(429, message)
 
     if response is None:
+        # --- MongoDB unreachable / connection-level failures -----------------
+        # Atlas SSL handshake + connection-timeout errors surface as pymongo
+        # ServerSelectionTimeoutError / AutoReconnect / ConnectionFailure, and a
+        # few flow out of mongoengine's ConnectionFailure. Surface a clear,
+        # actionable 503 (instead of a raw 500) so the UI can explain the fix.
+        try:
+            import pymongo.errors as mongo_errors
+
+            database_unavailable = (
+                isinstance(exc, mongo_errors.PyMongoError)
+                and not isinstance(exc, mongo_errors.InvalidOperation)
+            )
+        except Exception:
+            database_unavailable = False
+
+        # Belt-and-braces: match on the exception text too, so transient
+        # connection-level failures are caught even if class-hierarchy checks
+        # miss an odd subclass.
+        if not database_unavailable:
+            _db_hints = (
+                "serverSelectionTimeout",
+                "server selection timeout",
+                "auto reconnect",
+                "autoreconnect",
+                "ssl handshake failed",
+                "no primary",
+                "topology",
+                "couldn't connect to server",
+            )
+            database_unavailable = any(hint in str(exc).lower() for hint in _db_hints)
+
+        if database_unavailable:
+            logger.warning("Database unavailable during request at %s", context.get("view"))
+            return _error_response(
+                503,
+                "The database is temporarily unreachable. Please check your MongoDB "
+                "connection (Atlas Network Access / allowlist your IP) and try again.",
+                code="SERVICE_UNAVAILABLE",
+            )
+
+        try:
+            from mongoengine.errors import ValidationError as MongoValidationError
+            if isinstance(exc, MongoValidationError):
+                details = []
+                if hasattr(exc, "errors") and isinstance(exc.errors, dict):
+                    for k, v in exc.errors.items():
+                        details.append({"field": k, "message": str(v)})
+                else:
+                    details.append({"field": None, "message": str(exc)})
+                return _error_response(400, "Validation failed for saved fields.", code="VALIDATION_ERROR", details=details)
+        except Exception:
+            pass
+
         if isinstance(exc, Http404):
             return _error_response(404, "The requested resource was not found.")
         if isinstance(exc, PermissionDenied):

@@ -1,19 +1,23 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { MessageSquarePlus, SendHorizonal } from "lucide-react";
 
 import { ChatTranscript } from "@/components/planner/ChatTranscript";
+import { SavedChats } from "@/components/planner/SavedChats";
+import { VoicePlanner } from "@/components/planner/VoicePlanner";
 import { Button } from "@/components/ui/Button";
 import { Card, Spinner } from "@/components/ui/Card";
 import { api, ApiError } from "@/lib/api";
 import type { PlannerMessage } from "@/types/planner";
 
 const SUGGESTIONS = [
-  "Plan a 5-day trip to Dubai",
-  "Create a romantic getaway to Istanbul",
-  "Plan a family trip to Malaysia",
-  "A food-focused weekend in Bologna",
+  "✨ 7-day VVIP Luxury Escape to Tokyo & Kyoto",
+  "🏖️ 5-day Relaxed Spa & Beach Gateway to Maldives",
+  "🏰 4-day Historic & Culinary Blitz in Rome & Florence",
+  "🏔️ 6-day Winter Alpine Adventure in Swiss Alps",
+  "🌴 5-day Family-Friendly Tropical Trip to Malaysia",
+  "🍷 3-day Food & Wine Tasting Weekend in Tuscany",
 ];
 
 const CONVERSATION_KEY = "wandersync.conversation.id";
@@ -30,7 +34,10 @@ export default function PlannerPage() {
   const listRef = useRef<HTMLOListElement>(null);
   const prefillSent = useRef(false);
 
-  // Chat history persists: reuse the saved conversation across visits.
+  // Chat history persists: resume the saved conversation across visits.
+  // IMPORTANT: we do NOT create a conversation on load — that would spawn
+  // phantom empty chats (and with React StrictMode's double-mount, even two
+  // at once). A conversation is created lazily on the user's first message.
   useEffect(() => {
     let cancelled = false;
     const savedId = localStorage.getItem(CONVERSATION_KEY);
@@ -48,61 +55,66 @@ export default function PlannerPage() {
             return;
           }
         } catch {
-          // Saved conversation gone — fall through and create a fresh one.
+          // Saved conversation gone — start a clean session instead.
         }
       }
-      const data = await api.post<{ conversation: { id: string }; messages: PlannerMessage[] }>(
-        "/planner/conversations/",
-      );
       if (!cancelled) {
-        setConversationId(data.conversation.id);
-        setMessages(data.messages);
-        localStorage.setItem(CONVERSATION_KEY, data.conversation.id);
+        setConversationId(null);
+        setMessages([]);
+        setBootstrapping(false);
       }
     }
 
     bootstrap()
-      .catch(() => !cancelled && setError("Couldn't start the planner. Is the backend running?"))
+      .catch(() => !cancelled && setError("Couldn't load the planner. Is the backend running?"))
       .finally(() => !cancelled && setBootstrapping(false));
     return () => {
       cancelled = true;
     };
   }, []);
 
+  /** Start a clean planning session — nothing is saved until you send a message. */
   function startNewChat() {
-    void (async () => {
-      try {
-        const data = await api.post<{ conversation: { id: string }; messages: PlannerMessage[] }>(
-          "/planner/conversations/",
-        );
-        setConversationId(data.conversation.id);
-        setMessages(data.messages);
-        localStorage.setItem(CONVERSATION_KEY, data.conversation.id);
-        setError(null);
-      } catch {
-        setError("Couldn't start a new chat.");
-      }
-    })();
+    setConversationId(null);
+    setMessages([]);
+    setInput("");
+    setError(null);
+    prefillSent.current = false;
+    localStorage.removeItem(CONVERSATION_KEY);
   }
 
+
   async function send(content: string) {
-    if (!conversationId || !content.trim() || sending) return;
+    const text = content.trim();
+    if (!text || sending) return;
     setError(null);
     setSending(true);
     const optimistic: PlannerMessage = {
       id: `tmp-${crypto.randomUUID()}`,
       role: "user",
-      content,
+      content: text,
       meta: {},
     };
     setMessages((prev) => [...prev, optimistic]);
     setInput("");
     try {
+      // Lazily create the conversation on the first message so we never
+      // build up phantom empty "saved" chats.
+      let activeId = conversationId;
+      if (!activeId) {
+        const created = await api.post<{
+          conversation: { id: string };
+          messages: PlannerMessage[];
+        }>("/planner/conversations/", { title: text.slice(0, 60) });
+        activeId = created.conversation.id;
+        setConversationId(activeId);
+        localStorage.setItem(CONVERSATION_KEY, activeId);
+      }
       const data = await api.post<{
         user_message: PlannerMessage;
         assistant_message: PlannerMessage;
         trip?: { id: string };
-      }>(`/planner/conversations/${conversationId}/messages/`, { content });
+      }>(`/planner/conversations/${activeId}/messages/`, { content: text });
       setMessages((prev) => [
         ...prev.filter((m) => m.id !== optimistic.id),
         data.user_message,
@@ -111,42 +123,65 @@ export default function PlannerPage() {
       if (data.trip) void queryClient.invalidateQueries({ queryKey: ["trips"] });
     } catch (err) {
       setMessages((prev) => prev.filter((m) => m.id !== optimistic.id));
-      setInput(content);
+      setInput(text);
       setError(err instanceof ApiError ? err.message : "The planner is unavailable — try again.");
     } finally {
       setSending(false);
     }
   }
 
-  // Prefill from Famous Spots ("Ask the planner") via ?q=
+  // Prefill from Famous Spots ("Ask the planner") via ?q= — send() now
+  // handles conversation creation, so it can run even before one exists.
   useEffect(() => {
     const question = searchParams.get("q");
-    if (
-      question &&
-      !prefillSent.current &&
-      conversationId &&
-      !bootstrapping
-    ) {
+    if (question && !prefillSent.current && !bootstrapping) {
       prefillSent.current = true;
       void send(question);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [conversationId, bootstrapping, searchParams]);
+  }, [bootstrapping, searchParams]);
 
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, sending]);
 
+  /** Resume a saved conversation (topic-based) from the sidebar. */
+  const openConversation = (id: string) => {
+    if (id === conversationId) return;
+    setBootstrapping(true);
+    void api
+      .get<{ messages: PlannerMessage[] }>(`/planner/conversations/${id}/`)
+      .then((data) => {
+        setConversationId(id);
+        setMessages(data.messages);
+        localStorage.setItem(CONVERSATION_KEY, id);
+        setError(null);
+      })
+      .catch(() => setError("Couldn't open that saved chat."))
+      .finally(() => setBootstrapping(false));
+  };
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning! 🌅 Where are you dreaming of heading?";
+    if (hour < 18) return "Good afternoon! ☀️ Ready to plan your next journey?";
+    return "Good evening! 🌙 Let's build your perfect itinerary.";
+  };
+
   if (bootstrapping) return <Spinner label="Waking up your travel planner…" />;
 
   return (
-    <div className="mx-auto flex h-[calc(100vh-9rem)] max-w-3xl flex-col md:h-[calc(100vh-7rem)]">
+    <div className="mx-auto flex h-[calc(100vh-9rem)] max-w-5xl gap-4 md:h-[calc(100vh-7rem)]">
+      <SavedChats activeId={conversationId} onOpen={openConversation} onNewChat={startNewChat} />
+
+      <div className="flex min-w-0 flex-1 flex-col">
       <header className="flex items-center justify-between pb-3">
         <div>
-          <h1 className="font-[family-name:var(--font-display)] text-xl font-bold text-slate-50">AI Trip Planner</h1>
-          <p className="text-xs text-slate-500">
-            Describe your dream trip — itineraries land in{" "}
-            <Link to="/trips" className="text-brand-400">your trips</Link>. Chat history is saved automatically.
+          <h1 className="font-[family-name:var(--font-display)] text-xl font-bold text-slate-50">
+            {getGreeting()}
+          </h1>
+          <p className="text-xs text-slate-400">
+            Describe your destination, dates, budget or group — WanderSync handles the rest. Saved automatically.
           </p>
         </div>
         <Button size="sm" variant="secondary" onClick={startNewChat}>
@@ -179,13 +214,16 @@ export default function PlannerPage() {
           </p>
         )}
 
-        <form
-          className="flex gap-2 border-t border-ink-700 p-3"
-          onSubmit={(event) => {
-            event.preventDefault();
-            void send(input);
-          }}
-        >
+        <div className="p-3 border-t border-ink-700 space-y-2">
+          <VoicePlanner onSpeechResult={(txt) => void send(txt)} />
+
+          <form
+            className="flex gap-2"
+            onSubmit={(event) => {
+              event.preventDefault();
+              void send(input);
+            }}
+          >
           <label htmlFor="planner-input" className="sr-only">Message the travel planner</label>
           <input
             id="planner-input"
@@ -200,7 +238,9 @@ export default function PlannerPage() {
             {!sending && <SendHorizonal aria-hidden className="size-4" />}
           </Button>
         </form>
+        </div>
       </Card>
+      </div>
     </div>
   );
 }

@@ -4,11 +4,14 @@ from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
 
 from apps.accounts.views import (
     ChangePasswordView,
+    DeleteAccountView,
+    ForgotPasswordView,
     LoginView,
     LogoutView,
     MeView,
     MongoTokenRefreshView,
     RegisterView,
+    ResetPasswordView,
 )
 
 urlpatterns = [
@@ -19,5 +22,8 @@ urlpatterns = [
     path("verify/", TokenVerifyView.as_view(), name="auth-verify"),
     path("me/", MeView.as_view(), name="auth-me"),
     path("password/change/", ChangePasswordView.as_view(), name="auth-password-change"),
+    path("password/forgot/", ForgotPasswordView.as_view(), name="auth-forgot"),
+    path("password/reset/", ResetPasswordView.as_view(), name="auth-reset"),
+    path("account/", DeleteAccountView.as_view(), name="auth-delete"),
 ]
 

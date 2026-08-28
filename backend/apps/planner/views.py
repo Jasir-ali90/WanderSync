@@ -19,6 +19,36 @@ from apps.planner.serializers import CreateConversationSerializer, SendMessageSe
 logger = logging.getLogger(__name__)
 
 
+def time_based_greeting(full_name: str = "") -> str:
+    """Warm, time-aware welcome so the planner feels alive from message one."""
+    from datetime import datetime
+
+    hour = timezone.localtime().hour if timezone.is_aware(timezone.now()) else datetime.now().hour
+    name = (full_name or "").strip().split(" ")[0]
+    who = f", {name}" if name else ""
+    if 5 <= hour < 12:
+        opener, emoji = "Good morning", "🌅"
+        vibe = "Fresh start — perfect day to dream up a new journey!"
+    elif 12 <= hour < 17:
+        opener, emoji = "Good afternoon", "☀️"
+        vibe = "Great timing — let's turn your free hours into a trip plan."
+    elif 17 <= hour < 21:
+        opener, emoji = "Good evening", "🌇"
+        vibe = "Golden hour is the best hour for planning something beautiful."
+    else:
+        opener, emoji = "Working late? Good night", "🌙"
+        vibe = "While the world sleeps, let's plan where you'll wake up next."
+
+    return (
+        f"{opener}{who}! {emoji}\n\n"
+        f"{vibe}\n\n"
+        "I'm your WanderSync travel planner ✈️ Tell me about the trip you're "
+        "dreaming of — destination, how long, how many travellers, and your "
+        "budget — and I'll craft a realistic, day-by-day itinerary with maps "
+        "and weather. Where shall we go first?"
+    )
+
+
 class AIThrottle(ScopedRateThrottle):
     """Expensive AI operations get their own rate-limit scope."""
 
@@ -61,11 +91,7 @@ class ConversationListCreateView(APIView):
             conversation_id=conversation.id,
             owner_public_id=request.user.public_id,
             role="assistant",
-            content=(
-                "Hi! I'm your WanderSync travel planner ✈️ Tell me about the trip "
-                "you're dreaming of — destination, how long, budget, interests — "
-                "and I'll craft a day-by-day itinerary for you."
-            ),
+            content=time_based_greeting(request.user.full_name),
             info={"type": "greeting"},
         )
         greeting.save()
@@ -93,6 +119,16 @@ class ConversationDetailView(APIView):
                 "messages": [m.to_api_dict() for m in messages],
             }
         )
+
+    @extend_schema(tags=["planner"])
+    def patch(self, request, conversation_id: str):
+        conversation = _get_conversation(request, conversation_id)
+        title = (request.data.get("title") or "").strip()
+        if title:
+            conversation.title = title[:200]
+            conversation.updated_at = timezone.now()
+            conversation.save()
+        return success_response(conversation.to_api_dict(), message="Conversation title updated.")
 
     @extend_schema(tags=["planner"])
     def delete(self, request, conversation_id: str):
@@ -150,10 +186,23 @@ class ConversationMessagesView(APIView):
         )
         assistant_message.save()
 
-        conversation.modify(
-            message_count=(conversation.message_count or 0) + 2,
-            updated_at=timezone.now(),
-        )
+        # Derive a topic title once the conversation has substance, so saved
+        # chats are recognisable ("Trip to Istanbul", or the opening ask).
+        current_title = (conversation.title or "").strip()
+        if current_title in ("", "Trip planning"):
+            destination = conversation.requirements.get("destination")
+            if destination:
+                conversation.title = f"Trip to {destination}"[:200]
+            else:
+                conversation.title = content.strip().split("\n")[0][:80] or "Trip planning"
+            conversation.message_count = (conversation.message_count or 0) + 2
+            conversation.updated_at = timezone.now()
+            conversation.save()
+        else:
+            conversation.modify(
+                message_count=(conversation.message_count or 0) + 2,
+                updated_at=timezone.now(),
+            )
 
         payload = {
             "user_message": user_message.to_api_dict(),

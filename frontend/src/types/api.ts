@@ -81,3 +81,34 @@ export interface TripListData {
   pages: number;
   results: Trip[];
 }
+
+export interface AppNotification {
+  id: string;
+  kind: string;
+  title: string;
+  body: string;
+  link: string;
+  read: boolean;
+  created_at: string | null;
+}
+
+export interface NotificationListData {
+  unread: number;
+  results: AppNotification[];
+}
+
+export interface RecommendationData {
+  interests: string[];
+  spots: Array<{
+    country: string;
+    country_code: string;
+    spot: { name: string; description?: string };
+    reason: string;
+  }>;
+  destinations: Array<{
+    country: string;
+    code: string;
+    tagline?: string;
+    reason: string;
+  }>;
+}

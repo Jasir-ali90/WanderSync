@@ -1,6 +1,7 @@
 """Account API endpoints."""
 import logging
 
+from django.contrib.auth.tokens import default_token_generator
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.generics import RetrieveUpdateAPIView
@@ -11,6 +12,7 @@ from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from rest_framework_simplejwt.settings import api_settings
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from apps.accounts.documents import User
 from apps.accounts.serializers import (
     ChangePasswordSerializer,
     LoginSerializer,
@@ -22,6 +24,7 @@ from apps.accounts.services import (
     touch_last_login,
 )
 from apps.common.responses import error_response, success_response
+from apps.trips.documents import Trip
 
 logger = logging.getLogger(__name__)
 
@@ -169,3 +172,88 @@ class ChangePasswordView(APIView):
             {"tokens": tokens},
             message="Password changed successfully.",
         )
+
+
+class ForgotPasswordView(APIView):
+    """Request a password-reset token (demo: prints token to server log)."""
+
+    permission_classes = [AllowAny]
+    serializer_class = None
+
+    @extend_schema(auth=[], tags=["auth"])
+    def post(self, request):
+        email = (request.data.get("email") or "").strip().lower()
+        if not email:
+            from apps.common.responses import error_response
+
+            return error_response("Email is required.", code="VALIDATION_ERROR")
+        user = User.objects(email=email).first()
+        if user is not None and user.is_active:
+            token, _ = default_token_generator.make_token(user)
+            # In production, email this link. For a dev competition project we
+            # log it and return a generic message (never leak account status).
+            logger.info(
+                "Password reset requested for %s -> /reset?t=%s&u=%s",
+                email, token, user.public_id,
+            )
+        return success_response(
+            message="If that account exists, a reset link has been prepared.",
+        )
+
+
+class ResetPasswordView(APIView):
+    """Complete a password reset with the emailed token + user id."""
+
+    permission_classes = [AllowAny]
+    serializer_class = None
+
+    @extend_schema(auth=[], tags=["auth"])
+    def post(self, request):
+        from apps.accounts.documents import User
+        from apps.common.responses import error_response
+
+        email = (request.data.get("email") or "").strip().lower()
+        token = (request.data.get("token") or "").strip()
+        new_password = request.data.get("password") or ""
+        if len(new_password) < 8:
+            return error_response(
+                "Password must be at least 8 characters.", code="VALIDATION_ERROR"
+            )
+        user = User.objects(email=email).first()
+        if user is None or not user.is_active:
+            return error_response("Invalid reset link.", code="INVALID_RESET")
+        if not default_token_generator.check_token(user, token):
+            return error_response("Invalid or expired reset link.", code="INVALID_RESET")
+        user.set_password(new_password)
+        user.save()
+        logger.info("Password reset completed for %s", email)
+        return success_response(message="Password reset successfully — you can sign in.")
+
+
+class DeleteAccountView(APIView):
+    """Permanently delete the account and all owned data."""
+
+    permission_classes = [IsAuthenticated]
+    serializer_class = None
+
+    @extend_schema(tags=["auth"])
+    def delete(self, request):
+        from apps.planner.documents import Conversation, Message
+
+        owner = request.user.public_id
+        Trip.objects(owner_public_id=owner).delete()
+        conversations = Conversation.objects(owner_public_id=owner)
+        for conversation in conversations.only("id"):
+            Message.objects(conversation_id=conversation.id).delete()
+        conversations.delete()
+        from apps.notifications.models import Notification
+
+        Notification.objects(owner_public_id=owner).delete()
+        from apps.sharing.models import SharedTrip
+
+        SharedTrip.objects(owner_public_id=owner).delete()
+
+        email = request.user.email
+        request.user.delete()
+        logger.info("Account deleted: %s", email)
+        return success_response(message="Your account and data have been deleted.")

@@ -38,6 +38,30 @@ _DAY_SHAPES = [
 ]
 
 
+# Rough market-rate cost index by destination (USD baseline). Keeps demo
+# estimates believable instead of flat unrealistic numbers everywhere.
+_CITY_COST_INDEX = {
+    "paris": 1.55, "london": 1.65, "rome": 1.3, "barcelona": 1.25,
+    "amsterdam": 1.5, "berlin": 1.2, "tokyo": 1.45, "kyoto": 1.35,
+    "seoul": 1.1, "singapore": 1.4, "hong kong": 1.4, "new york": 1.8,
+    "los angeles": 1.5, "sydney": 1.45, "dubai": 1.35, "abu dhabi": 1.25,
+    "istanbul": 0.85, "cappadocia": 0.85, "antalya": 0.75, "cairo": 0.55,
+    "marrakech": 0.6, "bali": 0.65, "bangkok": 0.65, "phuket": 0.65,
+    "kuala lumpur": 0.6, "ho chi minh": 0.5, "hanoi": 0.5, "manila": 0.55,
+    "delhi": 0.5, "mumbai": 0.55, "jaipur": 0.5, "goa": 0.55,
+    "colombo": 0.55, "kathmandu": 0.5, "karachi": 0.4, "lahore": 0.42,
+    "islamabad": 0.42, "hunza": 0.38, "skardu": 0.4, "murree": 0.4,
+}
+
+
+def _destination_cost_index(destination: str) -> float:
+    key = str(destination or "").strip().lower()
+    for city, index in _CITY_COST_INDEX.items():
+        if city in key or key in city:
+            return index
+    return 1.0
+
+
 def build_demo_itinerary(requirements: dict) -> ItineraryDraft:
     destination = str(requirements.get("destination") or "Your Destination")
     days_count = int(requirements.get("duration_days") or 3)
@@ -48,6 +72,13 @@ def build_demo_itinerary(requirements: dict) -> ItineraryDraft:
     level_multiplier = {"budget": 0.7, "moderate": 1.0, "luxury": 2.2}.get(
         requirements.get("budget_level"), 1.0
     )
+    try:
+        travellers = max(1, int(requirements.get("travelers") or 1))
+    except (TypeError, ValueError):
+        travellers = 1
+    # Activities here are quoted per group; groups share tours but meals scale.
+    market_multiplier = _destination_cost_index(destination)
+    group_factor = 1.0 + (travellers - 1) * 0.6
 
     start_date = requirements.get("start_date") or date.today() + timedelta(days=30)
     if isinstance(start_date, str):
@@ -81,7 +112,9 @@ def build_demo_itinerary(requirements: dict) -> ItineraryDraft:
                     duration_minutes=duration,
                     location_name=destination,
                     category=category,
-                    cost_estimate=round(base_cost * level_multiplier, 2),
+                    cost_estimate=round(
+                        base_cost * level_multiplier * market_multiplier * group_factor, 2
+                    ),
                 )
             )
         days.append(

@@ -62,18 +62,18 @@ def get_place_details(place_id: str) -> dict | None:
     }
 
 
-def get_weather(lat: float, lon: float, days: int = 3) -> dict | None:
-    key = f"weather:{round(lat, 2)}:{round(lon, 2)}:{days}"
+def get_weather(lat: float, lon: float, days: int = 3, start=None) -> dict | None:
+    key = f"weather:{round(lat, 2)}:{round(lon, 2)}:{days}:{start}"
 
     def producer():
         try:
-            live = _weather_provider.get_weather(lat, lon, days)
+            live = _weather_provider.get_weather(lat, lon, days, start=start)
         except Exception:
             logger.exception("Weather provider crashed")
             live = None
         if live:
             return live
-        demo = _demo_provider.get_weather(lat, lon, days)
+        demo = _demo_provider.get_weather(lat, lon, days, start=start)
         return dict(demo or {}, _demo=True) if demo else None
 
     value, was_cached = cached(key, TTL, producer)

@@ -37,6 +37,9 @@ class TripPDFView(APIView):
         trip = _get_own_trip(request, trip_id)
         data = build_trip_pdf_bytes(trip)
         filename = f"wandersync-{trip.id}.pdf"
+        from apps.notifications.service import notify_export_completed
+
+        notify_export_completed(request.user.public_id, str(trip.id), "pdf")
         response = HttpResponse(data, content_type="application/pdf")
         response["Content-Disposition"] = f'attachment; filename="{filename}"'
         return response

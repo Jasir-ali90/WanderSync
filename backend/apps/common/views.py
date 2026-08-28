@@ -1,8 +1,10 @@
 """Health and readiness endpoints (public, unauthenticated)."""
+from django.conf import settings
 from drf_spectacular.utils import extend_schema
 from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.throttling import AnonRateThrottle
+from rest_framework.views import APIView
 
 from apps.common.responses import success_response
 from config.db import ensure_connection
@@ -36,3 +38,25 @@ def health_check(request):
         },
         message="WanderSync API is healthy" if database_ready else "WanderSync API is up, but the database is unreachable",
     )
+
+
+class PublicConfigView(APIView):
+    """Browser-safe configuration (public keys only).
+
+    Google Maps embed/JS keys are designed to be shared to browsers and are
+    normally restricted per HTTP referrer — never expose private keys here.
+    """
+
+    permission_classes = [AllowAny]
+
+    @extend_schema(operation_id="public_config", auth=[], tags=["config"])
+    def get(self, request):
+        return success_response(
+            {
+                "google_maps_key": getattr(settings, "MAPS_API_KEY", "") or "",
+                "features": {
+                    "google_maps": bool(getattr(settings, "MAPS_API_KEY", "")),
+                    "weather": True,
+                },
+            },
+        )

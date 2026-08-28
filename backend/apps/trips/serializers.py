@@ -15,8 +15,8 @@ from apps.trips.documents import (
 class TripWriteSerializer(serializers.Serializer):
     """Create/update payload for trips (partial-friendly)."""
 
-    title = serializers.CharField(max_length=200)
-    destination = serializers.CharField(max_length=200)
+    title = serializers.CharField(max_length=200, required=False)
+    destination = serializers.CharField(max_length=200, required=False)
     start_date = serializers.DateField(required=False, allow_null=True, default=None)
     end_date = serializers.DateField(required=False, allow_null=True, default=None)
     travelers = serializers.IntegerField(min_value=1, max_value=50, required=False)
@@ -76,7 +76,13 @@ class TripWriteSerializer(serializers.Serializer):
         return trip
 
     def update(self, instance, validated_data):
+        from decimal import Decimal
+
         for field, value in validated_data.items():
+            # MongoEngine FloatField rejects Decimal objects (DRF's
+            # DecimalField output) — coerce to plain float first.
+            if isinstance(value, Decimal):
+                value = float(value)
             setattr(instance, field, value)
         self._apply_dates(instance)
         instance.save()

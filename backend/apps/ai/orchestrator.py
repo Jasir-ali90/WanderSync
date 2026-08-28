@@ -18,6 +18,9 @@ from integrations.openai import client as openai_client
 logger = logging.getLogger(__name__)
 
 CRITICAL_FIELDS = ("destination", "duration_days")
+# Asked once before generating so the plan matches the traveller — the bot
+# must never silently assume travellers/budget/dates.
+PREFERENCE_FIELDS = ("travelers", "budget_amount", "start_date")
 
 REQUIREMENT_FIELDS = (
     "destination",
@@ -39,6 +42,19 @@ FOLLOW_UPS = {
     "duration_days": (
         "Great choice! How many days would you like to spend there? You can also "
         "tell me your travel dates if they're fixed."
+    ),
+    "travelers": (
+        "Wonderful! 🧳 How many travellers are going — just you, a partner, family, "
+        "or a group? This helps me price activities and rooms correctly."
+    ),
+    "budget_amount": (
+        "And what's your total budget for the trip? 💰 A rough number in USD "
+        "(e.g. \"about 1500\") lets me match hotels, meals and experiences to "
+        "real market prices instead of guessing."
+    ),
+    "start_date": (
+        "Finally, when would you like to go? 📅 Even an approximate month works — "
+        "I'll align weather expectations and seasonal tips with your dates."
     ),
 }
 
@@ -88,9 +104,16 @@ class PlannerOrchestrator:
             prompts.REQUIREMENTS_SYSTEM,
             prompts.build_requirements_prompt(current_state, recent, message),
             temperature=0.2,
-            max_tokens=500,
+            max_tokens=2500,
         )
-        return parse_requirement_patch(raw)
+        if raw is not None:
+            return parse_requirement_patch(raw)
+        # Key configured but the call failed (quota/network/malformed) —
+        # degrade to local heuristics instead of losing the user's input.
+        logger.info("AI extraction unavailable; falling back to local extraction.")
+        from apps.ai.local_extract import extract_local
+
+        return extract_local(message)
 
 
     # -- stage 2: itinerary generation ---------------------------------------
@@ -131,9 +154,46 @@ class PlannerOrchestrator:
 
 def process_user_message(conversation, content: str, recent_messages: list[str]) -> dict:
     """Full pipeline. Returns ``{"reply", "meta", "trip"}`` for the view."""
+    from apps.trips.documents import Trip
     from apps.trips.services import create_trip_from_itinerary
 
     orchestrator = PlannerOrchestrator()
+
+    # --- Smart Actions: modify an already-saved trip via natural language ----
+    if conversation.last_trip_id:
+        from apps.ai.modify import apply_command, detect_command
+
+        command = detect_command(content)
+        if command:
+            trip = Trip.objects(id=conversation.last_trip_id).first()
+            if trip is not None and trip.owner_public_id == conversation.owner_public_id:
+                try:
+                    notes, summary = apply_command(trip, command)
+                except Exception:
+                    logger.exception("Smart action failed")
+                    return {
+                        "reply": "I couldn't apply that change right now — please try again.",
+                        "meta": {"type": "error"},
+                        "trip": None,
+                    }
+                from apps.notifications.service import notify
+
+                notify(
+                    conversation.owner_public_id,
+                    "trip_saved",
+                    "Itinerary updated ✨",
+                    "Your trip was adjusted based on your request.",
+                    link=f"/trips/{trip.id}",
+                )
+                detail = " " + " ".join(notes) if notes else ""
+                return {
+                    "reply": (
+                        f"Done — I updated the trip to {summary}.{detail}\n\n"
+                        f"You can open it here: /trips/{trip.id}"
+                    ),
+                    "meta": {"type": "itinerary_modified", "trip_id": str(trip.id), "command": command},
+                    "trip": trip,
+                }
 
     try:
         patch = orchestrator.extract_requirements(
@@ -161,6 +221,28 @@ def process_user_message(conversation, content: str, recent_messages: list[str])
             "meta": {
                 "type": "clarification",
                 "missing": missing,
+                "captured": [
+                    f
+                    for f in ("destination", "duration_days", "travelers", "budget_amount")
+                    if conversation.requirements.get(f)
+                ],
+            },
+            "trip": None,
+        }
+
+    # Ask (once) for traveller preferences so plans are personalised rather
+    # than assumed — but never trap the user in an interrogation loop.
+    prefs = [
+        f for f in PREFERENCE_FIELDS if not conversation.requirements.get(f)
+    ]
+    if prefs and not conversation.requirements.get("_prefs_asked"):
+        conversation.requirements["_prefs_asked"] = True
+        conversation.save()
+        return {
+            "reply": FOLLOW_UPS[prefs[0]],
+            "meta": {
+                "type": "clarification",
+                "missing": prefs,
                 "captured": [
                     f
                     for f in ("destination", "duration_days", "travelers", "budget_amount")
@@ -219,7 +301,7 @@ def process_user_message(conversation, content: str, recent_messages: list[str])
         f"map and budget.{engine_note} Want me to adjust anything?"
     )
 
-    return {
+    request = {
         "reply": reply,
         "meta": {
             "type": "itinerary_generated",
@@ -229,5 +311,12 @@ def process_user_message(conversation, content: str, recent_messages: list[str])
         },
         "trip": trip,
     }
+
+    from apps.notifications.service import notify_itinerary_generated
+
+    notify_itinerary_generated(
+        conversation.owner_public_id, str(trip.id), trip.title
+    )
+    return request
 
 

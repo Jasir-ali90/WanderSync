@@ -1,35 +1,48 @@
+import { useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  Compass,
   Landmark,
+  Languages,
   LayoutDashboard,
   MapPinned,
+  Menu,
   ShieldCheck,
   Sparkles,
   UserRound,
+  X,
 } from "lucide-react";
 
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
+import { Avatar } from "@/components/ui/Avatar";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { ThemeToggle } from "@/components/common/ThemeToggle";
 
 const PUBLIC_LINKS = [
+  { to: "/", label: "Home" },
+  { to: "/#spots", label: "Explore" },
   { to: "/features", label: "Features" },
   { to: "/how-it-works", label: "How it works" },
 ];
 
 export function Wordmark({ className }: { className?: string }) {
+  const { user } = useAuth();
+  const target = user ? "/dashboard" : "/";
   return (
     <Link
-      to="/"
-      className={cn("flex items-center gap-2 font-[family-name:var(--font-display)]", className)}
+      to={target}
+      className={cn(
+        "group flex items-center gap-2 text-[15px] font-bold text-slate-100 transition-opacity hover:opacity-90",
+        className,
+      )}
     >
-      <span className="grid size-8 place-items-center rounded-lg bg-brand-500/15 text-brand-400">
-        <Compass aria-hidden className="size-5" />
+      <span className="grid size-7 place-items-center rounded-lg bg-gradient-to-tr from-brand-500 to-indigo-600 font-extrabold text-white shadow-md shadow-brand-500/30">
+        W
       </span>
-      <span className="text-lg font-bold tracking-tight text-slate-50">
-        Wander<span className="text-brand-400">Sync</span>
+      <span className="font-[family-name:var(--font-display)] tracking-tight">
+        Wander<span className="text-brand-400 font-extrabold">Sync</span>
       </span>
     </Link>
   );
@@ -37,27 +50,51 @@ export function Wordmark({ className }: { className?: string }) {
 
 function PublicNavbar() {
   const { user } = useAuth();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const location = useLocation();
+  // Close the mobile menu whenever the route changes.
+  const routeKey = location.pathname;
+
   return (
-    <header className="sticky top-0 z-40 border-b border-ink-700/60 bg-ink-950/80 backdrop-blur">
-      <nav aria-label="Main" className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
+    <header className="sticky top-0 z-40 border-b border-ink-700/60 bg-ink-950/85 backdrop-blur-md">
+      <nav
+        aria-label="Main"
+        className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6"
+      >
         <Wordmark />
-        <div className="hidden items-center gap-1 md:flex">
+
+        <ul className="hidden items-center gap-1 md:flex">
           {PUBLIC_LINKS.map((link) => (
-            <NavLink
-              key={link.to}
-              to={link.to}
-              className={({ isActive }) =>
-                cn(
-                  "rounded-lg px-3 py-2 text-sm transition-colors",
-                  isActive ? "bg-ink-800 text-slate-50" : "text-slate-300 hover:text-slate-50",
-                )
-              }
-            >
-              {link.label}
-            </NavLink>
-          ))}
-        </div>
+            <li key={link.to}>
+              <NavLink
+                to={link.to}
+                className={({ isActive }) =>
+                  cn(
+                    "relative rounded-lg px-3 py-2 text-sm transition-colors duration-200",
+                    isActive
+                      ? "text-brand-300"
+                      : "text-slate-300 hover:text-slate-50",
+                  )
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    {link.label}
+                    {isActive && (
+                      <motion.span
+                        layoutId="public-nav-active"
+                        className="absolute inset-x-2 -bottom-0.5 h-0.5 rounded-full bg-brand-400"
+                      />
+                    )}
+                  </>
+                )}
+              </NavLink>
+            </li>
+          ))}{" "}
+        </ul>
+
         <div className="hidden items-center gap-2 md:flex">
+          <ThemeToggle />
           {user ? (
             <Button size="sm" onClick={() => (window.location.href = "/dashboard")}>
               Open app
@@ -76,7 +113,63 @@ function PublicNavbar() {
             </>
           )}
         </div>
+
+        {/* Mobile hamburger */}
+        <button
+          type="button"
+          aria-label={menuOpen ? "Close menu" : "Open menu"}
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen((open) => !open)}
+          className="grid size-9 place-items-center rounded-lg border border-ink-700 text-slate-200 md:hidden"
+        >
+          {menuOpen ? <X aria-hidden className="size-5" /> : <Menu aria-hidden className="size-5" />}
+        </button>
       </nav>
+
+      {/* Mobile dropdown */}
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.div
+            key={`menu-${routeKey}`}
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden border-t border-ink-700/60 bg-ink-950/95 backdrop-blur-md md:hidden"
+          >
+            <ul className="space-y-1 px-4 py-3">
+              {PUBLIC_LINKS.map((link) => (
+                <li key={link.to}>
+                  <NavLink
+                    to={link.to}
+                    onClick={() => setMenuOpen(false)}
+                    className={({ isActive }) =>
+                      cn(
+                        "block rounded-lg px-3 py-2.5 text-sm",
+                        isActive ? "bg-ink-800 text-brand-300" : "text-slate-300 hover:bg-ink-800/60 hover:text-slate-50",
+                      )
+                    }
+                  >
+                    {link.label}
+                  </NavLink>
+                </li>
+              ))}
+              <li className="flex gap-2 border-t border-ink-700/60 pt-3">
+                <Link to="/login" className="flex-1" onClick={() => setMenuOpen(false)}>
+                  <Button variant="secondary" size="sm" className="w-full">
+                    Sign in
+                  </Button>
+                </Link>
+                <Link to="/register" className="flex-1" onClick={() => setMenuOpen(false)}>
+                  <Button size="sm" className="w-full">
+                    Get started
+                  </Button>
+                </Link>
+              </li>
+            </ul>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 }
@@ -93,10 +186,13 @@ export function Footer() {
   );
 }
 
+import { Background3D } from "@/components/common/Background3D";
+
 export function PublicLayout() {
   const location = useLocation();
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col relative">
+      <Background3D />
       <PublicNavbar />
       <main className="flex-1">
         <AnimatePresence mode="wait" initial={false}>
@@ -118,9 +214,9 @@ export function PublicLayout() {
 
 const APP_NAV = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/planner", label: "Planner", icon: Sparkles },
-  { to: "/trips", label: "Trips", icon: MapPinned },
-  { to: "/spots", label: "Spots", icon: Landmark },
+  { to: "/planner", label: "AI Planner", icon: Sparkles },
+  { to: "/trips", label: "My Trips", icon: MapPinned },
+  { to: "/spots", label: "Explore", icon: Landmark },
   { to: "/profile", label: "Profile", icon: UserRound },
 ];
 
@@ -131,7 +227,8 @@ export function ProtectedLayout() {
     ? [...APP_NAV, { to: "/admin", label: "Admin", icon: ShieldCheck }]
     : APP_NAV;
   return (
-    <div className="flex min-h-screen flex-col bg-ink-950">
+    <div className="flex min-h-screen flex-col bg-ink-950 relative">
+      <Background3D />
       <header className="sticky top-0 z-40 border-b border-ink-700/60 bg-ink-950/85 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">
           <Wordmark />
@@ -152,8 +249,31 @@ export function ProtectedLayout() {
               </NavLink>
             ))}
           </nav>
-          <div className="flex items-center gap-3 text-sm text-slate-400">
+          <div className="flex items-center gap-2 text-sm text-slate-400">
+            <ThemeToggle />
+            {/* Multi-language Selector */}
+            <div className="flex items-center gap-1 rounded-full border border-brand-500/30 bg-ink-900 px-2 py-1 text-xs text-brand-300">
+              <Languages className="size-3.5 text-brand-400" />
+              <select
+                onChange={(e) => {
+                  localStorage.setItem("ws_lang", e.target.value);
+                  window.location.reload();
+                }}
+                defaultValue={localStorage.getItem("ws_lang") || "en"}
+                className="bg-transparent text-xs text-brand-200 focus:outline-none cursor-pointer"
+              >
+                <option value="en" className="bg-ink-950 text-slate-100">🇬🇧 EN</option>
+                <option value="ur" className="bg-ink-950 text-slate-100">🇵🇰 اردو</option>
+                <option value="roman" className="bg-ink-950 text-slate-100">💬 Roman</option>
+              </select>
+            </div>
+
             <span className="hidden truncate sm:inline">{user?.email}</span>
+            <Avatar
+              url={user?.profile?.avatar_url}
+              fallbackName={user?.full_name || user?.email}
+            />
+            <NotificationBell />
             <Button variant="ghost" size="sm" onClick={logout}>
               Sign out
             </Button>

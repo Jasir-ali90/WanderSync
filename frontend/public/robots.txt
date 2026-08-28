@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /planner
+Disallow: /trips
+Disallow: /profile
+Disallow: /settings
+Disallow: /admin
+Disallow: /shared/

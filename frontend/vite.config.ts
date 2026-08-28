@@ -17,7 +17,7 @@ export default defineConfig({
     proxy: {
       // REST API calls hit the Django backend in development.
       '/api': {
-        target: 'http://localhost:8000',
+        target: 'https://wandersync-production-bb78.up.railway.app',
         changeOrigin: true,
       },
     },

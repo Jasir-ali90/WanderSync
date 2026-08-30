@@ -6,7 +6,6 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Eye, EyeOff } from "lucide-react";
 
-import { OtpVerification } from "@/components/auth/OtpVerification";
 import { Wordmark } from "@/components/layout/Layouts";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -42,15 +41,10 @@ const schema = z
 type FormValues = z.infer<typeof schema>;
 
 export default function RegisterPage() {
-  const { register: registerAccount, verifyOtp, resendOtp } = useAuth();
+  const { register: registerAccount } = useAuth();
   const navigate = useNavigate();
   const [formError, setFormError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
-  const [pendingEmail, setPendingEmail] = useState<string | null>(null);
-  const [otpError, setOtpError] = useState<string | null>(null);
-  const [otpMessage, setOtpMessage] = useState<string | null>(null);
-  const [devCode, setDevCode] = useState<string | null>(null);
-  const [verifying, setVerifying] = useState(false);
 
   const {
     register,
@@ -61,13 +55,12 @@ export default function RegisterPage() {
   const onSubmit = async (values: FormValues) => {
     setFormError(null);
     try {
-      const result = await registerAccount({
+      await registerAccount({
         email: values.email,
         full_name: values.fullName,
         password: values.password,
       });
-      setPendingEmail(result.email || values.email);
-      setDevCode(result.dev_otp ?? null);
+      navigate("/dashboard", { replace: true });
     } catch (error) {
       if (error instanceof ApiError) {
         const fieldMessage = Object.values(error.fieldErrors)[0];
@@ -78,64 +71,54 @@ export default function RegisterPage() {
     }
   };
 
-  const handleVerify = async (code: string) => {
-    if (!pendingEmail) return;
-    setOtpError(null);
-    setOtpMessage(null);
-    setVerifying(true);
-    try {
-      await verifyOtp(pendingEmail, code);
-      navigate("/dashboard", { replace: true });
-    } catch (error) {
-      setOtpError(error instanceof ApiError ? error.message : "That code was not accepted. Please try again.");
-    } finally {
-      setVerifying(false);
-    }
-  };
-
-  const handleResend = async () => {
-    if (!pendingEmail) return;
-    setOtpError(null);
-    setOtpMessage(null);
-    try {
-      const result = await resendOtp(pendingEmail);
-      setOtpMessage("A new verification code has been sent.");
-      setDevCode(result.dev_otp ?? null);
-    } catch (error) {
-      setOtpError(error instanceof ApiError ? error.message : "Could not resend the code. Please try again.");
-    }
-  };
-
-  if (pendingEmail) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 px-4 py-12">
-        <Wordmark className="mb-8 scale-125" />
-        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-          <OtpVerification
-            email={pendingEmail}
-            verifying={verifying}
-            error={otpError}
-            devCode={devCode}
-            resendMessage={otpMessage}
-            onVerify={handleVerify}
-            onResend={handleResend}
-          />
-        </motion.div>
-      </div>
-    );
-  }
-
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 px-4 py-12">
-      <Wordmark className="mb-8 scale-125" />
+    <div className="flex min-h-screen bg-slate-50">
+      <div className="relative hidden w-1/2 flex-col justify-between overflow-hidden bg-[#0a101d] p-12 lg:flex">
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute -left-16 top-1/4 h-72 w-72 rounded-full bg-blue-600/20 blur-[100px]" />
+          <div className="absolute bottom-10 right-0 h-56 w-56 rounded-full bg-indigo-500/20 blur-[90px]" />
+        </div>
+        <Wordmark className="[&_span:first-child]:bg-gradient-to-tr [&_span:first-child]:from-blue-500 [&_span:first-child]:to-indigo-600 relative [&_span:last-child]:text-white" />
+        <div className="relative">
+          <h1 className="font-[family-name:var(--font-display)] text-4xl font-bold leading-snug text-white">
+            Plan smarter,
+            <br />
+            <span className="text-blue-400">travel further.</span>
+          </h1>
+          <p className="mt-4 max-w-md text-sm leading-relaxed text-slate-400">
+            One free account unlocks AI day-by-day planning, live weather
+            intelligence, collaborative itineraries and smart budget tools.
+          </p>
+          <div className="mt-8 flex items-center gap-6">
+            {[
+              ["Instant", "AI itineraries"],
+              ["Free", "to get started"],
+              ["PKR-first", "budgeting"],
+            ].map(([value, label]) => (
+              <div key={label}>
+                <p className="text-base font-extrabold text-white">{value}</p>
+                <p className="text-xs text-slate-500">{label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+        <p className="relative text-xs text-slate-600">
+          © {new Date().getFullYear()} WanderSync — AI Travel Companion
+        </p>
+      </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 shadow-sm"
-      >
-        <div className="text-center">
+      <div className="flex min-h-screen flex-1 flex-col items-center justify-center px-4 py-12">
+        <div className="mb-8 lg:hidden">
+          <Wordmark className="scale-125" />
+        </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 shadow-card"
+        >
+          <div className="text-center">
           <h1 className="text-2xl font-extrabold text-slate-900">
             Create your account
           </h1>
@@ -210,7 +193,8 @@ export default function RegisterPage() {
             Sign in
           </Link>
         </p>
-      </motion.div>
+        </motion.div>
+        </div>
     </div>
   );
 }

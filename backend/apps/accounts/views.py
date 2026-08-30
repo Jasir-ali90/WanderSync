@@ -37,10 +37,7 @@ class AuthThrottle(ScopedRateThrottle):
 
 
 class RegisterView(APIView):
-    """Create a pending account and issue an email verification code.
-
-    The account only becomes active after the OTP is verified, so an
-    unverified user can never sign in or bypass the email check."""
+    """Create an account and sign the user in immediately."""
 
     permission_classes = [AllowAny]
     throttle_classes = [AuthThrottle]
@@ -52,22 +49,10 @@ class RegisterView(APIView):
         serializer = RegisterSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
-        from apps.accounts.services import issue_otp
-
-        code = issue_otp(user)
-        payload = {"email": user.email, "email_verified": False}
-        # Console OTP deployment: in DEBUG the code is echoed back so the demo
-        # flow completes end-to-end; in production it only exists in the logs.
-        from django.conf import settings as django_settings
-
-        if django_settings.DEBUG:
-            payload["dev_otp"] = code
+        tokens = issue_tokens(user)
         return success_response(
-            payload,
-            message=(
-                "Account created. Enter the 6-digit verification code "
-                "sent to your email to activate your account."
-            ),
+            {"user": user.to_safe_dict(), "tokens": tokens},
+            message="Account created — welcome to WanderSync!",
             status=status.HTTP_201_CREATED,
         )
 
@@ -133,12 +118,7 @@ class ResendOtpView(APIView):
                 code="OTP_COOLDOWN",
             )
         code = issue_otp(user)
-        payload = {"message": "A new verification code has been sent."}
-        from django.conf import settings as django_settings
-
-        if django_settings.DEBUG:
-            payload["dev_otp"] = code
-        return success_response(payload)
+        return success_response(message="A new verification code has been sent.")
 
 
 class LoginView(APIView):

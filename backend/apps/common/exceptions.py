@@ -67,6 +67,15 @@ def wandersync_exception_handler(exc, context):
         if "invalid_credentials" in flat:
             return _error_response(401, "Incorrect email or password.")
 
+        # Unverified (pending OTP) accounts: signal the client to show the
+        # verification screen instead of a generic credentials error.
+        if "EMAIL_UNVERIFIED" in flat or "email_unverified" in flat:
+            return _error_response(
+                401,
+                "Please verify your email before signing in. Enter the code we emailed you.",
+                code="EMAIL_UNVERIFIED",
+            )
+
     # Throttled requests get a friendly, actionable message.
     if isinstance(exc, drf_exceptions.Throttled):
         wait = getattr(exc, "wait", None)
@@ -155,10 +164,18 @@ def wandersync_exception_handler(exc, context):
                 return out
 
             details.extend(_flatten(messages))
+        # Prefer the first specific field message so users see exactly what to
+        # fix (e.g. "Email must be in lowercase letters only") instead of a
+        # generic summary.
+        first_detail = next((d["message"] for d in details if d.get("message")), None)
         message = (
-            "Please review the highlighted fields and try again."
-            if response.status_code == 400
-            else str(detail.get("detail", "Unable to complete request"))
+            first_detail
+            if response.status_code == 400 and first_detail
+            else (
+                "Please review the highlighted fields and try again."
+                if response.status_code == 400
+                else str(detail.get("detail", "Unable to complete request"))
+            )
         )
     else:
         message = str(detail)

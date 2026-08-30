@@ -2,7 +2,7 @@
 import logging
 
 import secrets
-from datetime import timedelta
+from datetime import timedelta, timezone as datetime_timezone
 
 from django.contrib.auth.hashers import check_password, make_password
 from django.utils import timezone
@@ -36,9 +36,7 @@ def normalize_email(email: str) -> str:
 
 
 def create_user(*, email: str, password: str, full_name: str = "") -> User:
-    """Create a pending (inactive, unverified) user with a hashed password.
-
-    The account is activated only after the email OTP is verified."""
+    """Create an active, verified account with a securely hashed password."""
     email = normalize_email(email)
     if not email:
         raise AccountError("Email is required.", code="VALIDATION_ERROR")
@@ -48,8 +46,8 @@ def create_user(*, email: str, password: str, full_name: str = "") -> User:
     user = User(
         email=email,
         full_name=(full_name or "").strip()[:120],
-        is_active=False,
-        email_verified=False,
+        is_active=True,
+        email_verified=True,
     )
     user.set_password(password)
     user.save()
@@ -124,10 +122,21 @@ def issue_otp(user: User) -> str:
     return code
 
 
+def _as_aware(value):
+    '''MongoDB stores naive UTC datetimes; Django's now() is aware. Normalise
+    so comparisons never raise "naive vs aware" TypeErrors.'''
+    if value is None:
+        return None
+    if timezone.is_naive(value):
+        return timezone.make_aware(value, datetime_timezone.utc)
+    return value
+
+
 def otp_cooldown_remaining(user: User) -> int:
-    if not user.otp_last_sent_at:
+    last_sent = _as_aware(user.otp_last_sent_at)
+    if not last_sent:
         return 0
-    elapsed = (timezone.now() - user.otp_last_sent_at).total_seconds()
+    elapsed = (timezone.now() - last_sent).total_seconds()
     return max(0, int(OTP_RESEND_COOLDOWN_SECONDS - elapsed))
 
 
@@ -138,7 +147,8 @@ def verify_otp(user: User, code: str) -> bool:
         return False
     if user.otp_attempts >= OTP_MAX_ATTEMPTS:
         return False
-    if not user.otp_expires_at or timezone.now() > user.otp_expires_at:
+    expires_at = _as_aware(user.otp_expires_at)
+    if not expires_at or timezone.now() > expires_at:
         return False
     user.modify(otp_attempts=user.otp_attempts + 1)
     if not check_password(code, user.otp_hash):

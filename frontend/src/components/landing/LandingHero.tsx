@@ -17,8 +17,14 @@ export function LandingHero() {
         };
 
   return (
-    <section className="bg-slate-50 relative overflow-hidden px-4 pb-20 pt-16 sm:px-6 sm:pt-24 border-b border-slate-200">
-      <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-2">
+    <section className="bg-slate-50 relative overflow-hidden border-b border-slate-200 px-4 pb-24 pt-16 sm:px-6 sm:pt-24">
+      {/* Premium ambient gradient mesh behind the hero */}
+      <div aria-hidden className="pointer-events-none absolute inset-0">
+        <div className="absolute -top-24 left-1/4 h-72 w-[42rem] -translate-x-1/2 rounded-full bg-blue-600/10 blur-[110px]" />
+        <div className="absolute right-0 top-10 h-56 w-96 rounded-full bg-indigo-500/10 blur-[100px]" />
+        <div className="absolute bottom-0 left-0 h-48 w-80 rounded-full bg-sky-500/10 blur-[90px]" />
+      </div>
+      <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-2 relative">
         <div>
           <motion.p
             {...(reduceMotion ? {} : { initial: { opacity: 0 }, animate: { opacity: 1 } })}

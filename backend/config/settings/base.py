@@ -236,6 +236,14 @@ WEATHER_API_KEY = env("WEATHER_API_KEY", "")
 
 CLIENT_URL = env("CLIENT_URL", "http://localhost:5173")
 
+# ------------------------------------------------------------------
+# Email delivery
+# ------------------------------------------------------------------
+EMAIL_BACKEND = env(
+    "EMAIL_BACKEND",
+    "django.core.mail.backends.console.EmailBackend",
+)
+
 CACHE_TTL_SECONDS = env_int("CACHE_TTL_SECONDS", 900)
 CURRENCY_API_TIMEOUT_SECONDS = env_int("CURRENCY_API_TIMEOUT_SECONDS", 4)
 

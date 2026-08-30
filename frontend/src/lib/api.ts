@@ -5,9 +5,14 @@
  * - Injects the JWT access token; on 401 retries once via /auth/refresh.
  * - Throws ApiError with a user-friendly message (already produced by the
  *   backend's exception handler).
+ *
+ * The production backend is the default so a deployed build NEVER calls
+ * localhost. Override with VITE_API_BASE_URL only for local development
+ * (e.g. a gitignored .env.local with VITE_API_BASE_URL=http://localhost:8000).
  */
 
-const BASE_HOST = import.meta.env.VITE_API_BASE_URL || "";
+const PRODUCTION_BASE_URL = "https://wandersync-production-bb78.up.railway.app";
+const BASE_HOST = import.meta.env.VITE_API_BASE_URL || PRODUCTION_BASE_URL;
 const BASE = `${BASE_HOST}/api/v1`;
 
 export interface Envelope<T> {

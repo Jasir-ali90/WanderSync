@@ -25,9 +25,13 @@ class RegisterSerializer(serializers.Serializer):
         return normalize_email(value)
 
     def validate_full_name(self, value: str) -> str:
+        from apps.accounts.services import AccountError
         from apps.accounts.services import validate_full_name as validate_name
 
-        return validate_name(value)
+        try:
+            return validate_name(value)
+        except AccountError as exc:
+            raise serializers.ValidationError(str(exc), code=exc.code)
 
     def validate_password(self, value: str) -> str:
         # Against an empty attribute set so "similarity" checks don't crash.
@@ -43,13 +47,22 @@ class RegisterSerializer(serializers.Serializer):
         return attrs
 
     def create(self, validated_data):
-        from apps.accounts.services import create_user
-
-        return create_user(
-            email=validated_data["email"],
-            password=validated_data["password"],
-            full_name=validated_data.get("full_name", ""),
+        from apps.accounts.services import (
+            AccountError,
+            EmailAlreadyExistsError,
+            create_user,
         )
+
+        try:
+            return create_user(
+                email=validated_data["email"],
+                password=validated_data["password"],
+                full_name=validated_data.get("full_name", ""),
+            )
+        except EmailAlreadyExistsError as exc:
+            raise serializers.ValidationError(str(exc), code=exc.code)
+        except AccountError as exc:
+            raise serializers.ValidationError(str(exc), code=exc.code)
 
 
 class LoginSerializer(serializers.Serializer):
@@ -61,20 +74,17 @@ class LoginSerializer(serializers.Serializer):
     )
 
     def validate(self, attrs):
-        user = authenticate_user(
-            email=attrs.get("email", ""),
-            password=attrs.get("password", ""),
-        )
+        email = normalize_email(attrs.get("email", ""))
+        password = attrs.get("password", "")
+        user = authenticate_user(email=email, password=password)
         if user is None:
-            existing = User.objects(email=normalize_email(attrs.get("email", ""))).first()
-            # Accounts awaiting OTP activation are inactive; existing verified
-            # accounts must keep working, so only pending users get the
-            # "verify your email" gate.
+            existing = User.objects(email=email).first()
             if existing is not None and not existing.is_active:
-                raise serializers.ValidationError(
-                    "Please verify your email before signing in. Enter the code we emailed you.",
-                    code="EMAIL_UNVERIFIED",
-                )
+                # Email verification has been retired; reactivate any legacy
+                # accounts left pending from the old OTP flow.
+                existing.modify(is_active=True, email_verified=True)
+                user = authenticate_user(email=email, password=password)
+        if user is None:
             raise serializers.ValidationError(
                 "Incorrect email or password.",
                 code="invalid_credentials",

@@ -46,6 +46,12 @@ def _get_client():
         return None
 
 
+def _models_to_try() -> list[str]:
+    primary = settings.OPENAI_MODEL
+    fallbacks = list(getattr(settings, "OPENAI_FALLBACK_MODELS", []))
+    return [primary] + [m for m in fallbacks if m and m != primary]
+
+
 def complete_json(
     system_prompt: str,
     user_prompt: str,
@@ -53,43 +59,53 @@ def complete_json(
     temperature: float = 0.6,
     max_tokens: int = 4000,
 ) -> dict | None:
-    """Request a JSON-object completion. Returns None on any failure."""
-    # Reasoning models (e.g. Groq's gpt-oss family) spend part of the token
-    # budget "thinking" before emitting the JSON — enforce a sane floor so
-    # small requests don't come back empty and fail validation.
+    """Request a JSON-object completion. Returns None on any failure.
+
+    Tries the primary model first; if the provider rejects it (e.g. the model
+    was retired), transparently retries the fallback models so the chatbot
+    keeps working without a redeploy.
+    """
     max_tokens = max(max_tokens, 1024)
     client = _get_client()
     if client is None:
         logger.info("AI not configured; skipping AI completion.")
         return None
-    try:
-        response = client.chat.completions.create(
-            model=settings.OPENAI_MODEL,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt},
-            ],
-            response_format={"type": "json_object"},
-            temperature=temperature,
-            max_tokens=max_tokens,
-        )
-        content = response.choices[0].message.content
-        if not content:
-            return None
-        parsed = json.loads(content)
-        return parsed if isinstance(parsed, dict) else None
-    except json.JSONDecodeError as exc:
-        logger.warning("AI returned malformed JSON: %s", exc)
-        return None
-    except Exception as exc:
-        message = str(exc)
-        if "insufficient_quota" in message or "credit_balance" in message or "429" in message:
-            logger.warning(
-                "AI quota exhausted (%s). Falling back to DEMO mode — "
-                "add credits or switch OPENAI_BASE_URL/OPENAI_MODEL to another provider.",
-                settings.OPENAI_MODEL,
+
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": user_prompt},
+    ]
+    last_error: Exception | None = None
+    for model in _models_to_try():
+        try:
+            response = client.chat.completions.create(
+                model=model,
+                messages=messages,
+                response_format={"type": "json_object"},
+                temperature=temperature,
+                max_tokens=max_tokens,
             )
-        else:
-            logger.warning("AI completion failed: %s", exc)
-        return None
+            content = response.choices[0].message.content
+            if not content:
+                continue
+            parsed = json.loads(content)
+            if isinstance(parsed, dict):
+                return parsed
+        except json.JSONDecodeError as exc:
+            logger.warning("AI (%s) returned malformed JSON: %s", model, exc)
+            return None
+        except Exception as exc:  # noqa: BLE001 - degrade gracefully
+            last_error = exc
+            message = str(exc)
+            if "insufficient_quota" in message or "credit_balance" in message or "429" in message:
+                logger.warning(
+                    "AI quota exhausted (%s). Falling back to DEMO mode — "
+                    "add credits or switch OPENAI_BASE_URL/OPENAI_MODEL to another provider.",
+                    model,
+                )
+                return None
+            logger.warning("AI completion failed on %s: %s", model, exc)
+    if last_error is not None:
+        logger.warning("All AI models failed; last error: %s", last_error)
+    return None
 

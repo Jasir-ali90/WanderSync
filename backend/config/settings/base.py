@@ -226,7 +226,13 @@ MONGODB_CONNECT_TIMEOUT_MS = env_int("MONGODB_CONNECT_TIMEOUT_MS", 10000)
 # External integrations (server-side only — never exposed to the client)
 # ------------------------------------------------------------------
 OPENAI_API_KEY = env("OPENAI_API_KEY", "")
-OPENAI_MODEL = env("OPENAI_MODEL", "llama-3.3-70b-versatile")
+# Default is Groq's flagship. If Groq ever retires it, the client falls back
+# through OPENAI_FALLBACK_MODELS automatically (see integrations/openai).
+OPENAI_MODEL = env("OPENAI_MODEL", "openai/gpt-oss-120b")
+OPENAI_FALLBACK_MODELS = [
+    m for m in env("OPENAI_FALLBACK_MODELS", "qwen/qwen3.8-27b,groq/compound").split(",")
+    if m.strip()
+]
 # Optional: any OpenAI-compatible endpoint (Groq, OpenRouter, Together,
 # DeepSeek, Ollama...). Example: https://api.groq.com/openai/v1
 OPENAI_BASE_URL = env("OPENAI_BASE_URL", "")

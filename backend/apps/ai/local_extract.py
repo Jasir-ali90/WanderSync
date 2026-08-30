@@ -11,7 +11,16 @@ from apps.ai.schemas import RequirementPatch, parse_requirement_patch
 _DESTINATION_PATTERNS = [
     r"\b(?:trip|journey|vacation|holiday)\s+(?:to|in)\s+([A-Za-z][A-Za-z '’\-]{1,60})",
     r"\bvisit(?:s|ed|ing)?\s+([A-Za-z][A-Za-z '’\-]{1,60})",
+    r"\b(?:go|going|travel)\s+(?:to|in)\s+([A-Za-z][A-Za-z '’\-]{1,60})",
 ]
+
+# Short replies like "tokyo" or "paris in december" are common answers to the
+# bot's destination question — recognise them so the chat never loops.
+_GREETINGS = {
+    "hi", "hello", "hey", "yo", "ok", "okay", "yes", "no", "nah", "sure",
+    "thanks", "thank", "help", "plan", "trip", "please", "done", "cool",
+    "nice", "great", "bye", "start", "go",
+}
 
 _DURATION_PATTERN = re.compile(r"(\d{1,3})\s*-?\s*days?\b", re.IGNORECASE)
 _BUDGET_PATTERN = re.compile(r"\$\s?([\d,]+(?:\.\d{1,2})?)|\bbudget\b[^\d]{0,12}([\d,]+)", re.IGNORECASE)
@@ -57,6 +66,15 @@ def extract_local(message: str):
             destination = _clean_destination(match.group(1))
             if destination:
                 break
+
+    if destination is None:
+        # Bare answer to the destination question: one to three words that
+        # aren't small talk ("tokyo", "paris in december", "new zealand").
+        words = [w for w in re.findall(r"[A-Za-z'’\-]+", message)]
+        if 1 <= len(words) <= 3 and words[0].lower() not in _GREETINGS:
+            candidate = _clean_destination(message)
+            if candidate and re.fullmatch(r"[A-Za-z][A-Za-z '’\-]{1,60}", candidate):
+                destination = candidate
 
     duration_days = None
     duration_match = _DURATION_PATTERN.search(lowered)

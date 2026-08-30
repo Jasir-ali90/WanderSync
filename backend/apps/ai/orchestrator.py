@@ -216,8 +216,18 @@ def process_user_message(conversation, content: str, recent_messages: list[str])
 
     missing = missing_critical_fields(conversation.requirements)
     if missing:
+        follow_up = FOLLOW_UPS[missing[0]]
+        # Anti-loop: if the identical follow-up was already asked, stop
+        # repeating it verbatim and instead show what a valid answer looks
+        # like so the user can unblock the conversation.
+        if follow_up in recent_messages:
+            examples = {
+                "destination": "Just reply with a place name — for example: **Tokyo**, **Istanbul**, or **Hunza**.",
+                "duration_days": "For example: **5 days**, **2 weeks**, or **10 days in April**.",
+            }
+            follow_up = follow_up + "\n\n" + examples.get(missing[0], "For example: **Tokyo**, 5 days, 2 travellers, budget 500000 PKR.")
         return {
-            "reply": FOLLOW_UPS[missing[0]],
+            "reply": follow_up,
             "meta": {
                 "type": "clarification",
                 "missing": missing,

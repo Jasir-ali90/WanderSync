@@ -3,7 +3,6 @@ import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Landmark,
-  Languages,
   LayoutDashboard,
   MapPinned,
   Menu,
@@ -244,23 +243,6 @@ export function ProtectedLayout() {
             ))}
           </nav>
           <div className="flex items-center gap-2 text-sm text-slate-500">
-            {/* Multi-language Selector */}
-            <div className="flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2 py-1 text-xs text-blue-700">
-              <Languages className="size-3.5 text-blue-600" />
-              <select
-                onChange={(e) => {
-                  localStorage.setItem("ws_lang", e.target.value);
-                  window.location.reload();
-                }}
-                defaultValue={localStorage.getItem("ws_lang") || "en"}
-                className="bg-transparent text-xs text-blue-700 focus:outline-none cursor-pointer"
-              >
-                <option value="en" className="bg-white text-slate-800">🇬🇧 EN</option>
-                <option value="ur" className="bg-white text-slate-800">🇵🇰 اردو</option>
-                <option value="roman" className="bg-white text-slate-800">💬 Roman</option>
-              </select>
-            </div>
-
             <span className="hidden truncate sm:inline">{user?.email}</span>
             <Avatar
               url={user?.profile?.avatar_url}

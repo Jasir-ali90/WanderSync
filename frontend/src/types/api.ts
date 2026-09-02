@@ -52,6 +52,21 @@ export interface Itinerary {
   total_estimated_cost: number;
 }
 
+export interface TripCollaborator {
+  user_public_id: string;
+  email: string;
+  name: string;
+  role: "owner" | "editor" | "viewer";
+  joined_at: string | null;
+}
+
+export interface ActivityLog {
+  id: string;
+  user_public_id: string;
+  action: string;
+  created_at: string | null;
+}
+
 export interface Trip {
   id: string;
   title: string;
@@ -72,7 +87,10 @@ export interface Trip {
     breakdown: Record<string, number>;
     insights: string[];
   };
+  collaborators: TripCollaborator[];
+  activity_logs: ActivityLog[];
   created_at: string | null;
+  updated_at: string | null;
 }
 
 export interface TripListData {

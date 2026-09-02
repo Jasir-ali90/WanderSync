@@ -410,7 +410,11 @@ export default function TripDetailPage() {
 
       {/* Smart Ecosystem Panels */}
       <div className="space-y-8 pt-6 border-t border-slate-200">
-        <TripCollaborationPanel tripId={tripId} />
+        <TripCollaborationPanel
+          tripId={tripId}
+          collaborators={data.collaborators ?? []}
+          activityLogs={data.activity_logs ?? []}
+        />
         <TripPollsPanel />
         <TripExpensesPanel />
         <SmartPackingPanel />

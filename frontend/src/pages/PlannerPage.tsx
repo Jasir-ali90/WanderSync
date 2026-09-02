@@ -92,13 +92,17 @@ export default function PlannerPage() {
       (window as unknown as Record<string, unknown>).webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
-      alert("Voice input is not supported in this browser.");
+      setError("Voice recognition is not supported in this browser. Please try Google Chrome or Microsoft Edge.");
       return;
     }
 
     if (isListening) {
       if (recognitionRef.current) {
-        recognitionRef.current.stop();
+        try {
+          recognitionRef.current.stop();
+        } catch {
+          // ignore already stopped
+        }
       }
       setIsListening(false);
       return;
@@ -113,16 +117,25 @@ export default function PlannerPage() {
 
       recognition.onstart = () => {
         setIsListening(true);
+        setError(null);
       };
 
       recognition.onresult = (event: any) => {
         const current = event.resultIndex;
         const text = event.results[current][0].transcript;
-        setInput(text);
+        if (text) {
+          setInput(text);
+        }
       };
 
-      recognition.onerror = () => {
+      recognition.onerror = (event: any) => {
+        logger_error: console.error("Speech recognition error:", event.error);
         setIsListening(false);
+        if (event.error === "not-allowed") {
+          setError("Microphone access was denied. Please allow microphone permissions in your browser.");
+        } else if (event.error !== "no-speech") {
+          setError(`Voice input error: ${event.error}`);
+        }
       };
 
       recognition.onend = () => {
@@ -130,8 +143,10 @@ export default function PlannerPage() {
       };
 
       recognition.start();
-    } catch {
+    } catch (err) {
+      console.error("Speech start error:", err);
       setIsListening(false);
+      setError("Could not start microphone. Please check browser permissions.");
     }
   };
 

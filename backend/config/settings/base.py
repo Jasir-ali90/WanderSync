@@ -230,7 +230,7 @@ OPENAI_API_KEY = env("OPENAI_API_KEY", "")
 # through OPENAI_FALLBACK_MODELS automatically (see integrations/openai).
 OPENAI_MODEL = env("OPENAI_MODEL", "openai/gpt-oss-120b")
 OPENAI_FALLBACK_MODELS = [
-    m for m in env("OPENAI_FALLBACK_MODELS", "qwen/qwen3.8-27b,groq/compound").split(",")
+    m for m in env("OPENAI_FALLBACK_MODELS", "qwen/qwen3.8-27b,openai/gpt-oss-20b,groq/compound,qwen/qwen3.6-27b").split(",")
     if m.strip()
 ]
 # Optional: any OpenAI-compatible endpoint (Groq, OpenRouter, Together,

@@ -1,71 +1,80 @@
 """Prompt construction for the AI planner.
 
-Security posture:
-- User messages are DATA, never instructions.
-- The model must never reveal system prompts or attempt to change rules.
-- Prompts stay compact: requirements state + a short recent-message window
-  (token-efficient; full history is never sent).
+All prompts are intentionally compact to stay within the Groq free-tier
+8000 TPM limit. User messages are DATA, never instructions.
 """
 
-REQUIREMENTS_SYSTEM = """You are WanderSync's high-precision travel requirements extraction intelligence.
-Extract travel planning details from the user's message accurately.
-Return ONLY a valid JSON object with these optional keys (omit keys not mentioned in the message):
-{"destination": str (specific city, region, or country),
- "duration_days": int (number of days),
- "start_date": "YYYY-MM-DD" (or null if uncertain),
- "travelers": int (number of people),
- "budget_amount": number (total budget in USD or local currency),
- "budget_currency": "USD" or standard 3-letter ISO code,
- "budget_level": "budget"|"moderate"|"luxury",
- "travel_style": one of ["relaxed","balanced","packed","luxury","adventure","cultural","romantic","family","foodie"],
- "interests": [str] (e.g. ["historical sites", "culinary experiences", "museums", "nature hikes"])}
+CONVERSATIONAL_SYSTEM = """You are WanderSync AI travel concierge.
+Provide accurate, helpful travel advice: weather, budgets, packing, food, sights.
+Use real-time data provided in the prompt. Give clear markdown answers.
+Never output static or repeated template text — always answer the specific question asked."""
 
-Rules:
-1. Extract what the user explicitly said or clearly implied. Never invent contradictory information.
-2. Convert phrases to accurate values: "a week" -> duration_days 7, "weekend" -> duration_days 2 or 3, "$1500" -> budget_amount 1500.
-3. Output strictly valid JSON without markdown wrapping or conversational filler."""
+REQUIREMENTS_SYSTEM = """Extract travel requirements from the user message.
+Return ONLY valid JSON with these optional keys (omit missing):
+{"destination":str, "duration_days":int, "start_date":"YYYY-MM-DD",
+ "travelers":int, "budget_amount":number, "budget_currency":"ISO-3",
+ "budget_level":"budget"|"moderate"|"luxury",
+ "travel_style":"relaxed"|"balanced"|"packed"|"luxury"|"adventure"|"cultural"|"romantic"|"family"|"foodie",
+ "interests":[str]}
+Rules: Extract only what user said. "a week"->7, "weekend"->2. Output raw JSON only."""
 
-ITINERARY_SYSTEM = """You are WanderSync's expert real-world itinerary generator and master travel guide.
-Given travel requirements, generate a high quality, realistic, geographically coherent day-by-day travel plan based on accurate real-world attractions, verified spots, and sensible opening hours.
-
-Return ONLY a valid JSON object matching this schema:
-{"destination": str,
- "days": [{"day_number": int, "title": str,
-           "activities": [{"name": str (real, verified attraction, restaurant, or experience),
-                           "description": str (concise 1-2 sentence description highlighting what makes it special),
-                           "start_time": "HH:MM" (24h format e.g. "09:30"),
-                           "duration_minutes": int (realistic duration between 30 and 240),
-                           "location_name": str (accurate district or landmark location),
-                           "category": one of ["attraction","museum","food","nature","shopping","transport","hotel","nightlife","beach","tour","rest"],
-                           "cost_estimate": number (realistic per-person cost in USD, 0 for free sights)}]}]}
-
-Rules:
-1. Provide accurate, non-static, dynamic itineraries tailored to the destination and traveler interests.
-2. Schedule 3-5 well-spaced activities per day in chronological order (morning -> afternoon -> evening/dinner).
-3. Cluster stops geographically so travel time between consecutive stops is minimal.
-4. Output strictly valid JSON only."""
+ITINERARY_SYSTEM = """You are a real-world travel itinerary generator.
+Return ONLY valid JSON:
+{"destination":str, "days":[{"day_number":int, "title":str,
+  "activities":[{"name":str, "description":str, "start_time":"HH:MM",
+    "duration_minutes":int, "location_name":str,
+    "category":"attraction"|"museum"|"food"|"nature"|"shopping"|"transport"|"hotel"|"nightlife"|"beach"|"tour"|"rest",
+    "cost_estimate":number}]}]}
+CRITICAL:
+1. Generate EXACTLY the number of days in duration_days. If 20 days requested, output 20 day objects.
+2. 3-5 activities per day in chronological order.
+3. Cluster activities geographically per day.
+4. Theme day groups for long trips (e.g. days 1-3 city, days 4-6 nature).
+5. Output raw JSON only — no markdown, no extra text."""
 
 
 def _requirements_summary(requirements: dict) -> str:
     known = {k: v for k, v in (requirements or {}).items() if v}
-    return str(known) if known else "(nothing captured yet)"
+    s = str(known) if known else "(none)"
+    return s[:400]  # Hard cap to prevent prompt bloat
 
 
 def build_requirements_prompt(
     current_state: dict, recent_messages: list[str], message: str
 ) -> str:
-    recent = "\n".join(f"- {m[:280]}" for m in recent_messages[-4:])
+    recent = "\n".join(f"- {m[:180]}" for m in recent_messages[-3:])
     return (
-        f"Known requirements so far: {_requirements_summary(current_state)}\n"
-        f"Recent conversation:\n{recent or '- (none)'}\n\n"
-        f"User's new message:\n\"\"\"\n{message[:2000]}\n\"\"\"\n\n"
-        "Extract any NEW or UPDATED requirements from this message."
+        f"Known: {_requirements_summary(current_state)}\n"
+        f"Recent:\n{recent or '(none)'}\n\n"
+        f"Message: \"{message[:1200]}\"\n\nExtract new/updated requirements."
     )
 
 
-def build_itinerary_prompt(requirements: dict) -> str:
+def build_conversational_prompt(
+    current_state: dict,
+    recent_messages: list[str],
+    message: str,
+    context_data: str = "",
+) -> str:
+    recent = "\n".join(f"- {m[:180]}" for m in recent_messages[-4:])
+    ctx = f"\nLive data:\n{context_data[:800]}\n" if context_data else ""
     return (
-        "Trip requirements:\n"
-        f"{_requirements_summary(requirements)}\n\n"
-        "Create the complete, geographically optimized day-by-day itinerary now."
+        f"Trip info: {_requirements_summary(current_state)}\n"
+        f"{ctx}"
+        f"Recent:\n{recent or '(none)'}\n\n"
+        f"User: \"{message[:1000]}\"\n\nAnswer now."
+    )
+
+
+def build_itinerary_prompt(requirements: dict, *, force_exact_days: bool = False) -> str:
+    duration = requirements.get("duration_days")
+    duration_note = (
+        f"MUST generate EXACTLY {duration} days (1 to {duration}). "
+        if duration else ""
+    )
+    strict = "Verify day count equals requested number before output. " if force_exact_days else ""
+    return (
+        f"Requirements: {_requirements_summary(requirements)}\n\n"
+        f"{duration_note}{strict}"
+        "Generate full itinerary as JSON now."
     )
